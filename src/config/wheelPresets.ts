@@ -1,0 +1,509 @@
+export interface WheelPreset {
+  id: string;
+  name: string;
+  shortName: string;
+  description: string;
+  outerDiameter: number;
+  baseInnerDiameter: number;
+  capHeight: number;
+  topWallThickness: number;
+}
+
+export const WHEEL_PRESETS: WheelPreset[] = [
+  {
+    id: "fanatec",
+    name: "Fanatec Formula & Hubs",
+    shortName: "Fanatec",
+    description: "Formula V2 / V2.5 / V3 & ClubSport Universal Hub",
+    outerDiameter: 11.40,
+    baseInnerDiameter: 9.70,
+    capHeight: 4.20,
+    topWallThickness: 1.00,
+  },
+  {
+    id: "moza",
+    name: "Moza Racing",
+    shortName: "Moza",
+    description: "GS, FSR, KS, RS & CS V2 Wheels",
+    outerDiameter: 12.00,
+    baseInnerDiameter: 10.20,
+    capHeight: 4.50,
+    topWallThickness: 1.00,
+  },
+  {
+    id: "simucube",
+    name: "Simucube / Ascher",
+    shortName: "Simucube",
+    description: "Ascher Racing F28 / F64 & Simucube Wireless Wheels",
+    outerDiameter: 11.80,
+    baseInnerDiameter: 10.00,
+    capHeight: 4.20,
+    topWallThickness: 1.00,
+  },
+  {
+    id: "logitech",
+    name: "Logitech Pro / G-Series",
+    shortName: "Logitech",
+    description: "G Pro Racing Wheel & G29/G920/G923",
+    outerDiameter: 10.80,
+    baseInnerDiameter: 9.10,
+    capHeight: 4.00,
+    topWallThickness: 1.00,
+  },
+  {
+    id: "custom",
+    name: "Custom Specification",
+    shortName: "Custom",
+    description: "Fully unlocked parametric millimeter dimensions",
+    outerDiameter: 11.40,
+    baseInnerDiameter: 9.70,
+    capHeight: 4.20,
+    topWallThickness: 1.00,
+  },
+];
+
+export interface ToleranceModifier {
+  id: string;
+  label: string;
+  value: number;
+  description: string;
+}
+
+export const TOLERANCE_MODIFIERS: ToleranceModifier[] = [
+  { id: "tighter", label: "Tighter", value: -0.10, description: "For loose shafts / over-extruding printers" },
+  { id: "snug", label: "Snug", value: -0.05, description: "Firm press fit" },
+  { id: "nominal", label: "Nominal", value: 0.00, description: "Factory exact design dimension" },
+  { id: "loose", label: "Loose", value: 0.05, description: "Slight clearance for textured filaments" },
+  { id: "extra_loose", label: "Extra Loose", value: 0.10, description: "Easy slip-on fit / ABS shrinkage" },
+];
+
+export interface FilamentColor {
+  id: string;
+  name: string;
+  hex: string;
+  type: "body" | "inlay" | "both";
+}
+
+export const MOTORSPORT_SWATCHES: FilamentColor[] = [
+  { id: "matte_black", name: "Matte Black", hex: "#18181B", type: "both" },
+  { id: "pure_white", name: "Pure White", hex: "#F8FAFC", type: "both" },
+  { id: "papaya_orange", name: "Papaya Orange", hex: "#FF6600", type: "both" },
+  { id: "acid_green", name: "Acid Green", hex: "#00FF66", type: "both" },
+  { id: "rosso_corsa", name: "Rosso Corsa", hex: "#E10600", type: "both" },
+  { id: "neon_yellow", name: "Neon Yellow", hex: "#FFE600", type: "both" },
+  { id: "cyan_racing", name: "Cyan Racing", hex: "#00D2FF", type: "both" },
+  { id: "gulf_blue", name: "Gulf Blue", hex: "#6CB4EE", type: "both" },
+  { id: "signal_amber", name: "Signal Amber", hex: "#FF9900", type: "both" },
+  { id: "racing_violet", name: "Racing Violet", hex: "#9D00FF", type: "both" },
+  { id: "anthracite", name: "Anthracite Grey", hex: "#374151", type: "both" },
+  { id: "stealth_carbon", name: "Carbon Weave", hex: "#0F1115", type: "both" },
+];
+
+export interface MotorsportIconDef {
+  id: string;
+  name: string;
+  category: "race" | "controls" | "lights" | "nav";
+  path: string; // SVG path data (normalized to 100x100 viewBox centered at 50,50)
+}
+
+export const MOTORSPORT_ICONS: MotorsportIconDef[] = [
+  {
+    id: "lightning",
+    name: "Hybrid / Boost",
+    category: "race",
+    path: "M56 12 L28 52 L48 52 L42 88 L72 46 L52 46 Z",
+  },
+  {
+    id: "radio",
+    name: "Radio / Mic",
+    category: "controls",
+    path: "M40 25 C40 19.5 44.5 15 50 15 C55.5 15 60 19.5 60 25 L60 47 C60 52.5 55.5 57 50 57 C44.5 57 40 52.5 40 47 Z M32 44 C32 54 39.5 62 50 62 C60.5 62 68 54 68 44 M50 62 L50 78 M38 78 L62 78",
+  },
+  {
+    id: "pit",
+    name: "Pit Limiter",
+    category: "race",
+    path: "M20 50 A30 30 0 1 1 80 50 L72 50 A22 22 0 1 0 28 50 Z M46 32 L54 32 L52 52 L48 52 Z M46 62 A4 4 0 1 1 54 62 A4 4 0 1 1 46 62 Z",
+  },
+  {
+    id: "wiper",
+    name: "Wiper",
+    category: "controls",
+    path: "M20 72 C32 42 68 42 80 72 M50 78 L50 48 M34 50 L66 42",
+  },
+  {
+    id: "headlights",
+    name: "Headlights",
+    category: "lights",
+    path: "M38 28 C50 28 58 36 58 50 C58 64 50 72 38 72 Z M64 36 L78 32 M66 50 L82 50 M64 64 L78 68",
+  },
+  {
+    id: "rain",
+    name: "Rain Light",
+    category: "lights",
+    path: "M50 20 L50 32 M29 29 L38 38 M71 29 L62 38 M50 42 A12 12 0 1 1 50 66 A12 12 0 1 1 50 42 Z M40 76 L40 84 M50 78 L50 86 M60 76 L60 84",
+  },
+  {
+    id: "arrow-up",
+    name: "Arrow Up",
+    category: "nav",
+    path: "M50 22 L24 48 L38 48 L38 78 L62 78 L62 48 L76 48 Z",
+  },
+  {
+    id: "arrow-down",
+    name: "Arrow Down",
+    category: "nav",
+    path: "M50 78 L76 52 L62 52 L62 22 L38 22 L38 52 L24 52 Z",
+  },
+  {
+    id: "arrow-left",
+    name: "Arrow Left",
+    category: "nav",
+    path: "M22 50 L48 24 L48 38 L78 38 L78 62 L48 62 L48 76 Z",
+  },
+  {
+    id: "arrow-right",
+    name: "Arrow Right",
+    category: "nav",
+    path: "M78 50 L52 24 L52 38 L22 38 L22 62 L52 62 L52 76 Z",
+  },
+  {
+    id: "plus",
+    name: "Plus (+)",
+    category: "controls",
+    path: "M43 24 L57 24 L57 43 L76 43 L76 57 L57 57 L57 76 L43 76 L43 57 L24 57 L24 43 L43 43 Z",
+  },
+  {
+    id: "minus",
+    name: "Minus (-)",
+    category: "controls",
+    path: "M24 44 L76 44 L76 56 L24 56 Z",
+  },
+  {
+    id: "flag",
+    name: "Chequered Flag",
+    category: "race",
+    path: "M30 18 L30 84 M30 20 C42 14 54 26 66 20 C74 16 78 22 78 22 L78 52 C78 52 70 48 62 50 C50 54 42 44 30 48 Z",
+  },
+];
+
+export interface ButtonCapConfig {
+  id: string;
+  name: string;
+  presetId: string;
+  // Dimensions in millimeters
+  outerDiameter: number;
+  baseInnerDiameter: number;
+  toleranceModifier: number; // e.g. -0.05, 0.00, +0.05
+  capHeight: number;
+  topWallThickness: number;
+  inlayDepth: number; // 0.2 to 1.0mm, default 0.40mm
+  // Inscription Mode: 'text' | 'symbol'
+  inscriptionMode: "text" | "symbol";
+  text: string; // 1 to 4 chars
+  fontFamily: "Orbitron" | "Chakra Petch" | "JetBrains Mono";
+  fontScale: number; // 0.60 to 1.40 (default 1.0)
+  letterSpacing: number; // -0.05 to 0.30
+  symbolId: string;
+  symbolScale: number; // 0.60 to 1.40
+  // Perimeter Accent Ring
+  hasAccentRing: boolean;
+  accentRingThickness: number; // mm (default 0.6mm)
+  // Surface Relief Mode
+  reliefMode: "flush" | "emboss" | "deboss";
+  embossHeight: number; // 0.4mm to 0.8mm for emboss
+  // Filament Colors
+  bodyColor: string; // hex
+  inlayColor: string; // hex
+}
+
+export const DEFAULT_12_CAPS: ButtonCapConfig[] = [
+  {
+    id: "cap-1",
+    name: "PIT Limiter",
+    presetId: "fanatec",
+    outerDiameter: 11.40,
+    baseInnerDiameter: 9.70,
+    toleranceModifier: 0.00,
+    capHeight: 4.20,
+    topWallThickness: 1.00,
+    inlayDepth: 0.40,
+    inscriptionMode: "text",
+    text: "PIT",
+    fontFamily: "Orbitron",
+    fontScale: 1.0,
+    letterSpacing: 0.02,
+    symbolId: "pit",
+    symbolScale: 1.0,
+    hasAccentRing: true,
+    accentRingThickness: 0.55,
+    reliefMode: "flush",
+    embossHeight: 0.40,
+    bodyColor: "#18181B",
+    inlayColor: "#FFE600",
+  },
+  {
+    id: "cap-2",
+    name: "BOX / Pit In",
+    presetId: "fanatec",
+    outerDiameter: 11.40,
+    baseInnerDiameter: 9.70,
+    toleranceModifier: 0.00,
+    capHeight: 4.20,
+    topWallThickness: 1.00,
+    inlayDepth: 0.40,
+    inscriptionMode: "text",
+    text: "BOX",
+    fontFamily: "Orbitron",
+    fontScale: 1.0,
+    letterSpacing: 0.02,
+    symbolId: "pit",
+    symbolScale: 1.0,
+    hasAccentRing: true,
+    accentRingThickness: 0.55,
+    reliefMode: "flush",
+    embossHeight: 0.40,
+    bodyColor: "#18181B",
+    inlayColor: "#FF6600",
+  },
+  {
+    id: "cap-3",
+    name: "DRS Wing",
+    presetId: "fanatec",
+    outerDiameter: 11.40,
+    baseInnerDiameter: 9.70,
+    toleranceModifier: 0.00,
+    capHeight: 4.20,
+    topWallThickness: 1.00,
+    inlayDepth: 0.40,
+    inscriptionMode: "text",
+    text: "DRS",
+    fontFamily: "Orbitron",
+    fontScale: 1.0,
+    letterSpacing: 0.02,
+    symbolId: "arrow-up",
+    symbolScale: 1.0,
+    hasAccentRing: false,
+    accentRingThickness: 0.55,
+    reliefMode: "flush",
+    embossHeight: 0.40,
+    bodyColor: "#18181B",
+    inlayColor: "#00FF66",
+  },
+  {
+    id: "cap-4",
+    name: "Overtake Boost",
+    presetId: "fanatec",
+    outerDiameter: 11.40,
+    baseInnerDiameter: 9.70,
+    toleranceModifier: 0.00,
+    capHeight: 4.20,
+    topWallThickness: 1.00,
+    inlayDepth: 0.40,
+    inscriptionMode: "text",
+    text: "OVTK",
+    fontFamily: "Chakra Petch",
+    fontScale: 0.95,
+    letterSpacing: 0.0,
+    symbolId: "lightning",
+    symbolScale: 1.0,
+    hasAccentRing: true,
+    accentRingThickness: 0.55,
+    reliefMode: "flush",
+    embossHeight: 0.40,
+    bodyColor: "#E10600",
+    inlayColor: "#F8FAFC",
+  },
+  {
+    id: "cap-5",
+    name: "Neutral",
+    presetId: "fanatec",
+    outerDiameter: 11.40,
+    baseInnerDiameter: 9.70,
+    toleranceModifier: 0.00,
+    capHeight: 4.20,
+    topWallThickness: 1.00,
+    inlayDepth: 0.40,
+    inscriptionMode: "text",
+    text: "N",
+    fontFamily: "Orbitron",
+    fontScale: 1.15,
+    letterSpacing: 0.0,
+    symbolId: "flag",
+    symbolScale: 1.0,
+    hasAccentRing: true,
+    accentRingThickness: 0.55,
+    reliefMode: "flush",
+    embossHeight: 0.40,
+    bodyColor: "#00FF66",
+    inlayColor: "#18181B",
+  },
+  {
+    id: "cap-6",
+    name: "Team Radio",
+    presetId: "fanatec",
+    outerDiameter: 11.40,
+    baseInnerDiameter: 9.70,
+    toleranceModifier: 0.00,
+    capHeight: 4.20,
+    topWallThickness: 1.00,
+    inlayDepth: 0.40,
+    inscriptionMode: "text",
+    text: "RAD",
+    fontFamily: "Orbitron",
+    fontScale: 1.0,
+    letterSpacing: 0.02,
+    symbolId: "radio",
+    symbolScale: 1.0,
+    hasAccentRing: false,
+    accentRingThickness: 0.55,
+    reliefMode: "flush",
+    embossHeight: 0.40,
+    bodyColor: "#18181B",
+    inlayColor: "#00D2FF",
+  },
+  {
+    id: "cap-7",
+    name: "Flash Highbeam",
+    presetId: "fanatec",
+    outerDiameter: 11.40,
+    baseInnerDiameter: 9.70,
+    toleranceModifier: 0.00,
+    capHeight: 4.20,
+    topWallThickness: 1.00,
+    inlayDepth: 0.40,
+    inscriptionMode: "text",
+    text: "FLSH",
+    fontFamily: "Chakra Petch",
+    fontScale: 0.95,
+    letterSpacing: 0.0,
+    symbolId: "headlights",
+    symbolScale: 1.0,
+    hasAccentRing: false,
+    accentRingThickness: 0.55,
+    reliefMode: "flush",
+    embossHeight: 0.40,
+    bodyColor: "#00D2FF",
+    inlayColor: "#18181B",
+  },
+  {
+    id: "cap-8",
+    name: "Engine Map",
+    presetId: "fanatec",
+    outerDiameter: 11.40,
+    baseInnerDiameter: 9.70,
+    toleranceModifier: 0.00,
+    capHeight: 4.20,
+    topWallThickness: 1.00,
+    inlayDepth: 0.40,
+    inscriptionMode: "text",
+    text: "MAP",
+    fontFamily: "Orbitron",
+    fontScale: 1.0,
+    letterSpacing: 0.02,
+    symbolId: "lightning",
+    symbolScale: 1.0,
+    hasAccentRing: false,
+    accentRingThickness: 0.55,
+    reliefMode: "flush",
+    embossHeight: 0.40,
+    bodyColor: "#18181B",
+    inlayColor: "#FF9900",
+  },
+  {
+    id: "cap-9",
+    name: "Increment / Up",
+    presetId: "fanatec",
+    outerDiameter: 11.40,
+    baseInnerDiameter: 9.70,
+    toleranceModifier: 0.00,
+    capHeight: 4.20,
+    topWallThickness: 1.00,
+    inlayDepth: 0.40,
+    inscriptionMode: "text",
+    text: "+",
+    fontFamily: "Orbitron",
+    fontScale: 1.25,
+    letterSpacing: 0.0,
+    symbolId: "plus",
+    symbolScale: 1.0,
+    hasAccentRing: true,
+    accentRingThickness: 0.55,
+    reliefMode: "flush",
+    embossHeight: 0.40,
+    bodyColor: "#18181B",
+    inlayColor: "#00FF66",
+  },
+  {
+    id: "cap-10",
+    name: "Decrement / Down",
+    presetId: "fanatec",
+    outerDiameter: 11.40,
+    baseInnerDiameter: 9.70,
+    toleranceModifier: 0.00,
+    capHeight: 4.20,
+    topWallThickness: 1.00,
+    inlayDepth: 0.40,
+    inscriptionMode: "text",
+    text: "-",
+    fontFamily: "Orbitron",
+    fontScale: 1.35,
+    letterSpacing: 0.0,
+    symbolId: "minus",
+    symbolScale: 1.0,
+    hasAccentRing: true,
+    accentRingThickness: 0.55,
+    reliefMode: "flush",
+    embossHeight: 0.40,
+    bodyColor: "#18181B",
+    inlayColor: "#E10600",
+  },
+  {
+    id: "cap-11",
+    name: "Traction Control",
+    presetId: "fanatec",
+    outerDiameter: 11.40,
+    baseInnerDiameter: 9.70,
+    toleranceModifier: 0.00,
+    capHeight: 4.20,
+    topWallThickness: 1.00,
+    inlayDepth: 0.40,
+    inscriptionMode: "text",
+    text: "TC",
+    fontFamily: "Orbitron",
+    fontScale: 1.08,
+    letterSpacing: 0.04,
+    symbolId: "rain",
+    symbolScale: 1.0,
+    hasAccentRing: false,
+    accentRingThickness: 0.55,
+    reliefMode: "flush",
+    embossHeight: 0.40,
+    bodyColor: "#18181B",
+    inlayColor: "#00D2FF",
+  },
+  {
+    id: "cap-12",
+    name: "Anti-lock Brakes",
+    presetId: "fanatec",
+    outerDiameter: 11.40,
+    baseInnerDiameter: 9.70,
+    toleranceModifier: 0.00,
+    capHeight: 4.20,
+    topWallThickness: 1.00,
+    inlayDepth: 0.40,
+    inscriptionMode: "text",
+    text: "ABS",
+    fontFamily: "Orbitron",
+    fontScale: 1.0,
+    letterSpacing: 0.02,
+    symbolId: "hazard",
+    symbolScale: 1.0,
+    hasAccentRing: false,
+    accentRingThickness: 0.55,
+    reliefMode: "flush",
+    embossHeight: 0.40,
+    bodyColor: "#18181B",
+    inlayColor: "#FF6600",
+  },
+];

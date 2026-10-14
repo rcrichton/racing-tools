@@ -1,69 +1,74 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import React from "react";
+import dynamic from "next/dynamic";
+import { Header } from "@/components/header/Header";
+import { CadSpecPillBar } from "@/components/viewport/CadSpecPillBar";
+import { ViewportControls } from "@/components/viewport/ViewportControls";
+import { Face2DPreview } from "@/components/preview/Face2DPreview";
+import { WheelPresetControls } from "@/components/controls/WheelPresetControls";
+import { InscriptionControls } from "@/components/controls/InscriptionControls";
+import { FilamentControls } from "@/components/controls/FilamentControls";
+import { BatchTray } from "@/components/tray/BatchTray";
+
+// Dynamic import with ssr: false for the Three.js 3D Viewport
+const ThreeViewport = dynamic(
+  () =>
+    import("@/components/viewport/ThreeViewport").then(
+      (mod) => mod.ThreeViewport
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-full flex flex-col items-center justify-center bg-[#090A0F] text-slate-500 font-mono text-xs">
+        <div className="w-8 h-8 border-2 border-orange-500/30 border-t-orange-500 rounded-full animate-spin mb-3" />
+        <span>Loading 3D Viewport Engine...</span>
+      </div>
+    ),
+  }
+);
+
+export default function HomePage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+    <div className="min-h-screen flex flex-col bg-[#090A0F] text-[#E2E8F0] selection:bg-orange-500/30">
+      {/* Top Header */}
+      <Header />
+
+      {/* Main 3-Column Studio Workspace */}
+      <main className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3 p-3 max-w-[1920px] mx-auto w-full">
+        {/* Left Column: Wheel Fitment & Filament (4 cols on lg) */}
+        <section className="lg:col-span-3 flex flex-col gap-3 overflow-y-auto max-h-[calc(100vh-180px)] pr-1">
+          <WheelPresetControls />
+          <FilamentControls />
+        </section>
+
+        {/* Center Column: 3D CAD Viewport & 2D Preview (5 cols on lg) */}
+        <section className="lg:col-span-6 flex flex-col gap-3 min-h-[500px]">
+          {/* Live CAD Spec Pill Bar */}
+          <CadSpecPillBar />
+
+          {/* 3D Viewport Canvas Container */}
+          <div className="flex-1 w-full min-h-[380px] bg-[#090A0F] border border-[#1E2330] rounded-2xl overflow-hidden relative shadow-2xl flex flex-col">
+            <ThreeViewport />
+          </div>
+
+          {/* Viewport Control Bar */}
+          <ViewportControls />
+
+          {/* 2D Canvas Face Preview */}
+          <Face2DPreview />
+        </section>
+
+        {/* Right Column: Inscription & Relief Engine (3 cols on lg) */}
+        <section className="lg:col-span-3 flex flex-col gap-3 overflow-y-auto max-h-[calc(100vh-180px)] pr-1">
+          <InscriptionControls />
+        </section>
       </main>
+
+      {/* Bottom 12-Cap Batch Tray */}
+      <footer className="mt-auto z-10 sticky bottom-0">
+        <BatchTray />
+      </footer>
     </div>
   );
 }
