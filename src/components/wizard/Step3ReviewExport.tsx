@@ -227,7 +227,7 @@ export const Step3ReviewExport: React.FC = () => {
           <div className="flex flex-wrap items-center gap-3 pt-2">
             <button
               onClick={handleExportAll3MF}
-              disabled={isExporting3MFSet}
+              disabled={isExporting3MFSet || caps.length === 0}
               className="flex items-center gap-3 px-6 py-3.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-bold font-orbitron tracking-wider text-sm shadow-xl shadow-orange-500/25 transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50"
             >
               {isExporting3MFSet ? (
@@ -240,7 +240,7 @@ export const Step3ReviewExport: React.FC = () => {
 
             <button
               onClick={handleExportSingle3MF}
-              disabled={isExporting3MFSingle}
+              disabled={isExporting3MFSingle || caps.length === 0}
               className="flex items-center gap-2 px-4 py-3.5 rounded-xl bg-[#090A0F] hover:bg-slate-800 border border-[#1E2330] text-slate-300 hover:text-white font-medium text-xs transition disabled:opacity-50"
               title="Download single .3MF for currently active cap"
             >

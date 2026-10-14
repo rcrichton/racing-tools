@@ -58,6 +58,7 @@ interface CapStudioState {
   applyPresetToActiveCapConfig: (preset: CapPresetDef) => void;
   duplicateActiveCap: () => void;
   removeCapById: (id: string) => void;
+  clearCaps: () => void;
   resetAllCaps: () => void;
   loadStarterPack: (packType: "single" | "gt3_6" | "formula_12") => void;
 
@@ -128,8 +129,8 @@ export const useCapStore = create<CapStudioState>()(
         });
       },
 
-      caps: [STARTER_1_CAP],
-      activeCapId: STARTER_1_CAP.id,
+      caps: [],
+      activeCapId: "",
 
       cameraView: "angled",
       explodeOffset: 0,
@@ -290,15 +291,24 @@ export const useCapStore = create<CapStudioState>()(
 
       removeCapById: (id: string) => {
         const { caps, activeCapId } = get();
-        if (caps.length <= 1) return; // Keep at least 1 cap
-
         const remaining = caps.filter((c) => c.id !== id);
         const nextActiveId =
-          activeCapId === id ? remaining[0].id : activeCapId;
+          remaining.length > 0
+            ? activeCapId === id
+              ? remaining[0].id
+              : activeCapId
+            : "";
 
         set({
           caps: remaining,
           activeCapId: nextActiveId,
+        });
+      },
+
+      clearCaps: () => {
+        set({
+          caps: [],
+          activeCapId: "",
         });
       },
 

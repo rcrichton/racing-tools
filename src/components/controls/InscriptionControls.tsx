@@ -214,7 +214,7 @@ export const InscriptionControls: React.FC = () => {
                   title={icon.name}
                 >
                   <svg
-                    viewBox="0 0 100 100"
+                    viewBox={icon.viewBox || "0 0 512 512"}
                     className="w-6 h-6 mb-1"
                     fill="currentColor"
                   >
