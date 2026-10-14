@@ -89,9 +89,10 @@ function createFallbackTextShapes(
 ): THREE.Shape[] {
   const shapes: THREE.Shape[] = [];
   const charCount = Math.max(1, text.length);
-  const charWidth = (targetWidth / charCount) * 0.75;
-  const spacing = targetWidth / charCount;
-  const startX = -targetWidth / 2 + spacing / 2;
+  const charWidth = Math.min(targetHeight * 0.65, (targetWidth / charCount) * 0.85);
+  const spacing = charWidth * 1.15;
+  const totalW = (charCount - 1) * spacing + charWidth;
+  const startX = -totalW / 2 + charWidth / 2;
 
   for (let i = 0; i < text.length; i++) {
     const cx = startX + i * spacing;
@@ -133,7 +134,8 @@ export async function generateTextShapes(
   // Base font size to measure
   const baseFontSize = 72;
   const path = font.getPath(cleanText, 0, 0, baseFontSize, {
-    letterSpacing: letterSpacing * baseFontSize,
+    kerning: true,
+    letterSpacing: letterSpacing,
   });
 
   const bb = path.getBoundingBox();

@@ -228,7 +228,7 @@ export const useCapStore = create<CapStudioState>()(
           text: text || `C${newIndex}`,
           fontFamily: "Orbitron",
           fontScale: 1.0,
-          letterSpacing: 0.02,
+          letterSpacing: 0.0,
           symbolId: "lightning",
           symbolScale: 1.0,
           hasAccentRing: true,
@@ -370,7 +370,7 @@ export const useCapStore = create<CapStudioState>()(
         set({ printOrientation: orientation }),
     }),
     {
-      name: "sim-cap-studio-storage-v3",
+      name: "sim-cap-studio-storage-v4",
       partialize: (state) => ({
         caps: state.caps,
         activeCapId: state.activeCapId,

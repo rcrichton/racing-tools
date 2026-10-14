@@ -167,20 +167,25 @@ export const InscriptionControls: React.FC = () => {
             <div className="flex justify-between items-center text-slate-300">
               <span>Letter Tracking (Spacing)</span>
               <span className="font-bold text-white bg-[#090A0F] px-1.5 py-0.5 rounded border border-[#1E2330]">
-                {((cap.letterSpacing || 0) * 100).toFixed(0)}%
+                {((cap.letterSpacing ?? 0) * 100).toFixed(0)}%
               </span>
             </div>
             <input
               type="range"
-              min="-0.04"
-              max="0.20"
+              min="-0.05"
+              max="0.08"
               step="0.01"
-              value={cap.letterSpacing || 0}
+              value={cap.letterSpacing ?? 0}
               onChange={(e) =>
                 updateActiveCap({ letterSpacing: parseFloat(e.target.value) })
               }
               className="accent-orange-500 bg-slate-800 h-1.5 rounded cursor-pointer"
             />
+            <div className="flex justify-between text-[10px] text-slate-500">
+              <span>Tight (-5%)</span>
+              <span>Natural (0%)</span>
+              <span>Spread (+8%)</span>
+            </div>
           </div>
         </div>
       )}
