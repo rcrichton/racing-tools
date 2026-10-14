@@ -7,10 +7,17 @@ import * as THREE from "three";
 import { useCapStore } from "@/store/useCapStore";
 import { buildCapGeometry, CapGeometryResult } from "@/lib/cad/buildCapGeometry";
 
-// Camera controller that smoothly transitions to presets
-function CameraRig({ view }: { view: "angled" | "top" | "underside" }) {
+// Camera controller that transitions smoothly on preset clicks and releases control when user interacts
+function CameraRig({
+  view,
+  onUserInteractRef,
+}: {
+  view: "angled" | "top" | "underside";
+  onUserInteractRef: React.MutableRefObject<boolean>;
+}) {
   const { camera } = useThree();
-  const targetPos = useRef(new THREE.Vector3(14, 16, 20));
+  const targetPos = useRef(new THREE.Vector3(13, 15, 18));
+  const isTransitioning = useRef(false);
 
   useEffect(() => {
     if (view === "angled") {
@@ -18,12 +25,20 @@ function CameraRig({ view }: { view: "angled" | "top" | "underside" }) {
     } else if (view === "top") {
       targetPos.current.set(0, 22, 0.001);
     } else if (view === "underside") {
-      targetPos.current.set(0, -18, 12);
+      targetPos.current.set(0, -16, 12);
     }
-  }, [view]);
+    isTransitioning.current = true;
+    onUserInteractRef.current = false;
+  }, [view, onUserInteractRef]);
 
   useFrame((_, delta) => {
-    camera.position.lerp(targetPos.current, Math.min(1, delta * 6));
+    if (!isTransitioning.current || onUserInteractRef.current) return;
+
+    camera.position.lerp(targetPos.current, Math.min(1, delta * 7));
+    if (camera.position.distanceTo(targetPos.current) < 0.05) {
+      camera.position.copy(targetPos.current);
+      isTransitioning.current = false;
+    }
   });
 
   return null;
@@ -37,6 +52,7 @@ function SceneContent() {
 
   const [cadResult, setCadResult] = useState<CapGeometryResult | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
+  const onUserInteractRef = useRef(false);
 
   // Cross-section clipping plane cutting along X=0
   const clipPlane = useMemo(() => new THREE.Plane(new THREE.Vector3(1, 0, 0), 0), []);
@@ -70,18 +86,26 @@ function SceneContent() {
 
   return (
     <>
-      <CameraRig view={cameraView} />
+      <CameraRig view={cameraView} onUserInteractRef={onUserInteractRef} />
       <OrbitControls
+        makeDefault
         enableDamping
-        dampingFactor={0.08}
-        minDistance={6}
-        maxDistance={60}
-        maxPolarAngle={cameraView === "top" ? Math.PI / 4 : Math.PI - 0.05}
+        dampingFactor={0.06}
+        rotateSpeed={0.75}
+        panSpeed={0.75}
+        zoomSpeed={0.8}
+        minDistance={4}
+        maxDistance={70}
+        minPolarAngle={0}
+        maxPolarAngle={Math.PI}
         target={[0, (cap.capHeight || 4.2) / 2, 0]}
+        onStart={() => {
+          onUserInteractRef.current = true;
+        }}
       />
 
       {/* Studio Lighting */}
-      <ambientLight intensity={0.8} />
+      <ambientLight intensity={0.85} />
       <directionalLight
         position={[15, 25, 20]}
         intensity={1.8}
@@ -155,7 +179,7 @@ function SceneContent() {
         </group>
       )}
 
-      {/* Subtle calculating spinner indicator in 3D */}
+      {/* Calculating spinner indicator */}
       {isCalculating && (
         <mesh position={[0, cap.capHeight + 3, 0]}>
           <ringGeometry args={[1.5, 1.8, 24]} />
@@ -185,7 +209,7 @@ export const ThreeViewport: React.FC = () => {
   return (
     <div className="w-full h-full relative bg-[#090A0F] overflow-hidden select-none">
       <Canvas
-        camera={{ position: [14, 16, 20], fov: 42 }}
+        camera={{ position: [13, 15, 18], fov: 42 }}
         gl={{
           antialias: true,
           toneMapping: THREE.ACESFilmicToneMapping,

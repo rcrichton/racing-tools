@@ -41,54 +41,22 @@ function getCacheKey(config: ButtonCapConfig): string {
 }
 
 /**
- * Builds parametric 3D watertight geometries for the Cap Body and Dual-Color Inlay
+ * Generates the unified 2D shapes for inscription (text / symbol) and optional accent ring.
+ * Shared directly by both 3D CAD extrusion and 2D Canvas preview for 100% scale parity.
  */
-export async function buildCapGeometry(
+export async function getInlayShapes(
   config: ButtonCapConfig
-): Promise<CapGeometryResult> {
-  const cacheKey = getCacheKey(config);
-  if (geometryCache.has(cacheKey)) {
-    return geometryCache.get(cacheKey)!;
-  }
-
+): Promise<THREE.Shape[]> {
   const {
     outerDiameter: OD,
-    baseInnerDiameter: baseID,
-    toleranceModifier,
-    capHeight: H,
-    topWallThickness: T,
-    inlayDepth,
-    reliefMode,
-    embossHeight = 0.4,
     hasAccentRing,
     accentRingThickness = 0.55,
   } = config;
 
-  const effectiveID = +(baseID + toleranceModifier).toFixed(2);
-  const wallThickness = +((OD - effectiveID) / 2).toFixed(2);
-
   const Ro = OD / 2;
-  const Ri = Math.min(Ro - 0.35, effectiveID / 2);
   const C = 0.25; // 0.25mm top outer chamfer
-  const leadInChamfer = 0.15; // 0.15mm bottom inner lead-in chamfer for easy push fit
 
-  // 1. Build Parametric Smooth-Bore Hollow Cup (Lathe)
-  // Coordinates in (radius, Y): Y=0 at skirt bottom, Y=H at top face
-  const points: THREE.Vector2[] = [
-    new THREE.Vector2(0.001, H), // Top face center
-    new THREE.Vector2(Ro - C, H), // Top face outer chamfer start
-    new THREE.Vector2(Ro, H - C), // Outer chamfer end
-    new THREE.Vector2(Ro, 0), // Bottom outer skirt rim
-    new THREE.Vector2(Ri + leadInChamfer, 0), // Bottom inner lead-in chamfer start
-    new THREE.Vector2(Ri, leadInChamfer), // Bottom inner lead-in chamfer end
-    new THREE.Vector2(Ri, H - T), // Inner bore top corner
-    new THREE.Vector2(0.001, H - T), // Bore ceiling center
-  ];
-
-  const bodyCupGeo = new THREE.LatheGeometry(points, 64);
-  bodyCupGeo.computeVertexNormals();
-
-  // 2. Gather 2D Inscription Shapes (Text / Symbol / Accent Ring)
+  // Safe inner diameter on top face
   const maxSafeDiameter = hasAccentRing
     ? Math.max(2.0, (Ro - C - 0.35 - accentRingThickness - 0.4) * 2)
     : Math.max(3.0, (Ro - C - 0.4) * 2);
@@ -96,7 +64,6 @@ export async function buildCapGeometry(
   let inscriptionShapes: THREE.Shape[] = [];
 
   if (config.inscriptionMode === "text") {
-    // Dynamic aspect ratio calculation based on character count
     const charLen = Math.max(1, (config.text || "").trim().length);
     let targetWidth = maxSafeDiameter * 0.85;
     let targetHeight = maxSafeDiameter * 0.75;
@@ -128,9 +95,9 @@ export async function buildCapGeometry(
     );
   }
 
-  // Add Outer Accent Ring if enabled
-  const allInlayShapes: THREE.Shape[] = [...inscriptionShapes];
+  const allShapes: THREE.Shape[] = [...inscriptionShapes];
 
+  // Optional concentric outer accent ring
   if (hasAccentRing) {
     const ringOutRadius = Ro - C - 0.3;
     const ringInRadius = Math.max(0.5, ringOutRadius - accentRingThickness);
@@ -142,8 +109,61 @@ export async function buildCapGeometry(
     ringHole.absarc(0, 0, ringInRadius, 0, Math.PI * 2, true);
     ringShape.holes.push(ringHole);
 
-    allInlayShapes.push(ringShape);
+    allShapes.push(ringShape);
   }
+
+  return allShapes;
+}
+
+/**
+ * Builds parametric 3D watertight geometries for the Cap Body and Dual-Color Inlay.
+ * Correctly oriented so text and symbols are upright when viewed from the front camera.
+ */
+export async function buildCapGeometry(
+  config: ButtonCapConfig
+): Promise<CapGeometryResult> {
+  const cacheKey = getCacheKey(config);
+  if (geometryCache.has(cacheKey)) {
+    return geometryCache.get(cacheKey)!;
+  }
+
+  const {
+    outerDiameter: OD,
+    baseInnerDiameter: baseID,
+    toleranceModifier,
+    capHeight: H,
+    topWallThickness: T,
+    inlayDepth,
+    reliefMode,
+    embossHeight = 0.4,
+  } = config;
+
+  const effectiveID = +(baseID + toleranceModifier).toFixed(2);
+  const wallThickness = +((OD - effectiveID) / 2).toFixed(2);
+
+  const Ro = OD / 2;
+  const Ri = Math.min(Ro - 0.35, effectiveID / 2);
+  const C = 0.25; // 0.25mm top outer chamfer
+  const leadInChamfer = 0.15; // 0.15mm bottom inner lead-in chamfer for easy push fit
+
+  // 1. Build Parametric Smooth-Bore Hollow Cup (Lathe)
+  // Coordinates in (radius, Y): Y=0 at skirt bottom, Y=H at top face
+  const points: THREE.Vector2[] = [
+    new THREE.Vector2(0.001, H), // Top face center
+    new THREE.Vector2(Ro - C, H), // Top face outer chamfer start
+    new THREE.Vector2(Ro, H - C), // Outer chamfer end
+    new THREE.Vector2(Ro, 0), // Bottom outer skirt rim
+    new THREE.Vector2(Ri + leadInChamfer, 0), // Bottom inner lead-in chamfer start
+    new THREE.Vector2(Ri, leadInChamfer), // Bottom inner lead-in chamfer end
+    new THREE.Vector2(Ri, H - T), // Inner bore top corner
+    new THREE.Vector2(0.001, H - T), // Bore ceiling center
+  ];
+
+  const bodyCupGeo = new THREE.LatheGeometry(points, 64);
+  bodyCupGeo.computeVertexNormals();
+
+  // 2. Gather 2D Inscription Shapes (Text / Symbol / Accent Ring)
+  const allInlayShapes = await getInlayShapes(config);
 
   // If no shapes exist, return pure body geometry
   if (allInlayShapes.length === 0) {
@@ -162,6 +182,12 @@ export async function buildCapGeometry(
   }
 
   // 3. Extrude Inlay / Inscription Geometry & Construct Volumes
+  // Note on orientation:
+  // ExtrudeGeometry builds 2D shapes (X, Y) along +Z.
+  // Rotating around X by -Math.PI / 2 transforms:
+  // X -> X (Left to Right)
+  // Y -> Z (Top of letter at +Y in 2D becomes -Z, pointing away from viewer / upright)
+  // Z -> Y (Extrusion depth along Z becomes vertical height along Y)
   let finalBodyGeo: THREE.BufferGeometry = bodyCupGeo;
   let finalInlayGeo: THREE.BufferGeometry | null = null;
 
@@ -177,20 +203,19 @@ export async function buildCapGeometry(
         bevelEnabled: false,
         curveSegments: 20,
       });
-      // In Three.js, ExtrudeGeometry builds along +Z. Rotate so it aligns with Y.
-      inlayGeo.rotateX(Math.PI / 2);
-      inlayGeo.translate(0, H, 0); // Position exactly at Y = H down to Y = H - inlayDepth
+      inlayGeo.rotateX(-Math.PI / 2);
+      inlayGeo.translate(0, H - inlayDepth, 0); // Position exactly at Y = H - inlayDepth up to Y = H
       inlayGeo.computeVertexNormals();
       finalInlayGeo = inlayGeo;
 
-      // Body Pocket Cutter: slightly extended upwards to ensure clean planar cut
+      // Body Pocket Cutter: slightly extended vertically to guarantee clean planar subtraction
       const cutterGeo = new THREE.ExtrudeGeometry(allInlayShapes, {
-        depth: inlayDepth + 0.04,
+        depth: inlayDepth + 0.05,
         bevelEnabled: false,
         curveSegments: 20,
       });
-      cutterGeo.rotateX(Math.PI / 2);
-      cutterGeo.translate(0, H + 0.02, 0);
+      cutterGeo.rotateX(-Math.PI / 2);
+      cutterGeo.translate(0, H - inlayDepth - 0.02, 0);
 
       const bodyBrush = new Brush(bodyCupGeo);
       bodyBrush.updateMatrixWorld();
@@ -209,8 +234,8 @@ export async function buildCapGeometry(
         bevelEnabled: false,
         curveSegments: 20,
       });
-      inlayGeo.rotateX(Math.PI / 2);
-      inlayGeo.translate(0, H + embossHeight, 0);
+      inlayGeo.rotateX(-Math.PI / 2);
+      inlayGeo.translate(0, H, 0); // Extrudes from Y = H to Y = H + embossHeight
       inlayGeo.computeVertexNormals();
       finalInlayGeo = inlayGeo;
       finalBodyGeo = bodyCupGeo;
@@ -218,12 +243,12 @@ export async function buildCapGeometry(
       // ENGRAVED DEBOSS:
       // Cavity cut into the top face of depth inlayDepth
       const cutterGeo = new THREE.ExtrudeGeometry(allInlayShapes, {
-        depth: inlayDepth + 0.04,
+        depth: inlayDepth + 0.05,
         bevelEnabled: false,
         curveSegments: 20,
       });
-      cutterGeo.rotateX(Math.PI / 2);
-      cutterGeo.translate(0, H + 0.02, 0);
+      cutterGeo.rotateX(-Math.PI / 2);
+      cutterGeo.translate(0, H - inlayDepth - 0.02, 0);
 
       const bodyBrush = new Brush(bodyCupGeo);
       bodyBrush.updateMatrixWorld();
@@ -235,14 +260,14 @@ export async function buildCapGeometry(
       cutBody.geometry.computeVertexNormals();
       finalBodyGeo = cutBody.geometry;
 
-      // Recessed thin accent inlay at bottom of deboss pocket (optional for visualization)
+      // Recessed accent inlay at bottom of deboss pocket (optional for visualization)
       const recessedInlay = new THREE.ExtrudeGeometry(allInlayShapes, {
         depth: 0.1,
         bevelEnabled: false,
         curveSegments: 20,
       });
-      recessedInlay.rotateX(Math.PI / 2);
-      recessedInlay.translate(0, H - inlayDepth + 0.1, 0);
+      recessedInlay.rotateX(-Math.PI / 2);
+      recessedInlay.translate(0, H - inlayDepth, 0);
       recessedInlay.computeVertexNormals();
       finalInlayGeo = recessedInlay;
     }
@@ -254,8 +279,8 @@ export async function buildCapGeometry(
       bevelEnabled: false,
       curveSegments: 16,
     });
-    fallbackInlay.rotateX(Math.PI / 2);
-    fallbackInlay.translate(0, H, 0);
+    fallbackInlay.rotateX(-Math.PI / 2);
+    fallbackInlay.translate(0, H - inlayDepth, 0);
     finalInlayGeo = fallbackInlay;
   }
 
