@@ -159,13 +159,13 @@ export const Step2DesignCaps: React.FC = () => {
                   onClick={() => loadStarterPack("gt3")}
                   className="px-3.5 py-2 rounded-lg bg-[#090A0F] hover:bg-white/[0.06] border border-white/10 text-slate-200 hover:text-white transition font-medium"
                 >
-                  GT3 / LMP Set (10 Caps)
+                  GT3 / LMP Set (20 Caps)
                 </button>
                 <button
                   onClick={() => loadStarterPack("formula")}
                   className="px-3.5 py-2 rounded-lg bg-[#090A0F] hover:bg-white/[0.06] border border-white/10 text-slate-200 hover:text-white transition font-medium"
                 >
-                  Formula Set (10 Caps)
+                  Formula Set (18 Caps)
                 </button>
               </div>
             </div>

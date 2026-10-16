@@ -29,6 +29,7 @@ const CATEGORIES: ("All" | PresetCategory)[] = [
   "GT3 & LMP",
   "Formula",
   "Symbols",
+  "Comms & Emotes",
   "Adjustments",
 ];
 
@@ -232,7 +233,7 @@ export const AddCapModal: React.FC<AddCapModalProps> = ({
               }}
               className="px-3 py-1.5 rounded-lg bg-[#141824] hover:bg-white/10 border border-white/10 text-slate-200 hover:text-white transition text-xs font-medium"
             >
-              GT3 / LMP Set (10 Caps)
+              GT3 / LMP Set (20 Caps)
             </button>
             <button
               onClick={() => {
@@ -241,7 +242,7 @@ export const AddCapModal: React.FC<AddCapModalProps> = ({
               }}
               className="px-3 py-1.5 rounded-lg bg-[#141824] hover:bg-white/10 border border-white/10 text-slate-200 hover:text-white transition text-xs font-medium"
             >
-              Formula Set (10 Caps)
+              Formula Set (18 Caps)
             </button>
           </div>
         </div>

@@ -538,6 +538,83 @@ const ICON_BUILDERS: Record<string, IconBuilder> = {
       oy
     ),
   ],
+
+  // 25. Thumbs Up (Emote / Thank You / Like)
+  "thumbs-up": (s, oy) => [
+    makeRoundedRect(-20, -8, 8, 26, 2, s, oy),
+    makePolygon(
+      [
+        [-12, -21],
+        [16, -21],
+        [22, -15],
+        [22, 5],
+        [14, 9],
+        [2, 9],
+        [-2, 31],
+        [-10, 31],
+        [-12, 15],
+      ],
+      s,
+      oy
+    ),
+  ],
+
+  // 26. Thumbs Down (Emote / Dislike)
+  "thumbs-down": (s, oy) => [
+    makeRoundedRect(-20, 8, 8, 26, 2, s, oy),
+    makePolygon(
+      [
+        [-12, 21],
+        [16, 21],
+        [22, 15],
+        [22, -5],
+        [14, -9],
+        [2, -9],
+        [-2, -31],
+        [-10, -31],
+        [-12, -15],
+      ],
+      s,
+      oy
+    ),
+  ],
+
+  // 27. Call / Join Group Call
+  call: (s, oy) => [
+    makeArcBand(0, -8, 20, 29, 35, 145, s, oy, 24),
+    makeRoundedRect(-18, 10, 11, 16, 4, s, oy),
+    makeRoundedRect(18, 10, 11, 16, 4, s, oy),
+  ],
+
+  // 28. Hang Up / Leave Group Call
+  hangup: (s, oy) => [
+    makeArcBand(0, 8, 20, 29, 215, 325, s, oy, 24),
+    makeRoundedRect(-18, -10, 11, 16, 4, s, oy),
+    makeRoundedRect(18, -10, 11, 16, 4, s, oy),
+  ],
+
+  // 29. Chat / Message / Emote
+  chat: (s, oy) => [
+    makeRoundedRect(0, 5, 52, 34, 10, s, oy),
+    makePolygon(
+      [
+        [-14, -10],
+        [-14, -28],
+        [2, -10],
+      ],
+      s,
+      oy
+    ),
+  ],
+
+  // 30. Headset (Discord / TeamSpeak / Group Voice)
+  headset: (s, oy) => [
+    makeArcBand(0, 4, 21, 28, 20, 160, s, oy, 28),
+    makeRoundedRect(-24, 2, 8, 18, 3.5, s, oy),
+    makeRoundedRect(24, 2, 8, 18, 3.5, s, oy),
+    makeArcBand(0, -2, 21, 25, 210, 270, s, oy, 16),
+    makeCircle(0, -23, 4.5, s, oy),
+  ],
 };
 
 // Backwards-compatible aliases for any existing saved configs
