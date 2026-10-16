@@ -189,35 +189,34 @@ export const Face2DPreview: React.FC = () => {
   }, [cap, zoomLevel]);
 
   return (
-    <div className="flex flex-col bg-[#12151E] border border-[#1E2330] rounded-xl p-3 shadow-md">
-      <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#1E2330] text-xs font-mono">
+    <div className="flex flex-col bg-[#11141D] border border-white/[0.07] rounded-2xl p-3.5">
+      <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-white/[0.06] text-xs">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
           <span className="font-semibold text-slate-200">2D Face Preview</span>
-          <span className="text-[10px] text-slate-500">
-            ({(zoomLevel / 3.78).toFixed(1)}x Zoom)
+          <span className="text-[11px] font-mono text-slate-500">
+            Ø{cap.outerDiameter.toFixed(1)}mm
           </span>
         </div>
 
         {/* Zoom Controls */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 font-mono">
           <button
             onClick={() => setZoomLevel((z) => Math.max(8, z - 2))}
-            className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            className="p-1 rounded text-slate-400 hover:text-white hover:bg-white/[0.06] transition"
             title="Zoom Out"
           >
             <ZoomOut className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => setZoomLevel(14)}
-            className="px-1.5 py-0.5 rounded text-[10px] text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            className="px-1.5 py-0.5 rounded text-[10px] text-slate-400 hover:text-white hover:bg-white/[0.06] transition"
             title="Reset Zoom"
           >
-            Reset
+            {(zoomLevel / 3.78).toFixed(1)}x
           </button>
           <button
             onClick={() => setZoomLevel((z) => Math.min(26, z + 2))}
-            className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            className="p-1 rounded text-slate-400 hover:text-white hover:bg-white/[0.06] transition"
             title="Zoom In"
           >
             <ZoomIn className="w-3.5 h-3.5" />
@@ -225,16 +224,13 @@ export const Face2DPreview: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex items-center justify-center bg-[#090A0F] rounded-lg border border-[#1E2330] p-2 relative overflow-hidden">
+      <div className="flex items-center justify-center bg-[#090A0F] rounded-xl border border-white/[0.06] p-2 relative overflow-hidden">
         <canvas
           ref={canvasRef}
-          width={240}
-          height={240}
+          width={220}
+          height={220}
           className="rounded cursor-crosshair"
         />
-        <div className="absolute top-2 left-2 text-[9px] font-mono text-slate-500 bg-[#090A0F]/80 px-1.5 py-0.5 rounded border border-[#1E2330]">
-          1:1 Scale Reticle
-        </div>
       </div>
     </div>
   );

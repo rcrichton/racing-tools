@@ -28,14 +28,14 @@ function preparePrintGeometry(
   const geo = geometry.clone();
 
   if (orientation === "faceDown") {
-    // 1. Flip Y: face (Y=H) becomes -H, skirt (Y=0) becomes 0
-    geo.scale(1, -1, 1);
-    // 2. Translate by +H: face becomes 0, skirt becomes +H
-    geo.translate(0, capHeight, 0);
-    // 3. Rotate so Y becomes Z (standard 3D printing Z-up build axis)
-    geo.rotateX(Math.PI / 2);
+    // Pure rigid rotation (no reflection/mirroring):
+    // 1. Rotate 180° around Y and -90° around X so top face (Y=H) sits at Z=-H facing -Z
+    geo.rotateY(Math.PI);
+    geo.rotateX(-Math.PI / 2);
+    // 2. Shift up by +H so the face rests flat on the build plate (Z=0) and skirt extends to Z=+H
+    geo.translate(0, 0, capHeight);
   } else {
-    // Base-down: skirt at Y=0, face at Y=H
+    // Base-down: rotate +90° around X so skirt sits at Z=0 and top face is at Z=+H
     geo.rotateX(Math.PI / 2);
   }
 

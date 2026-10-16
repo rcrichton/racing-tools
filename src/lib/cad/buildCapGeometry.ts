@@ -28,6 +28,7 @@ function getCacheKey(config: ButtonCapConfig): string {
     config.inlayDepth,
     config.inscriptionMode,
     config.text,
+    config.subtext || "",
     config.fontFamily,
     config.fontScale,
     config.letterSpacing,
@@ -41,7 +42,7 @@ function getCacheKey(config: ButtonCapConfig): string {
 }
 
 /**
- * Generates the unified 2D shapes for inscription (text / symbol) and optional accent ring.
+ * Generates the unified 2D shapes for inscription (text / symbol + optional subtext) and optional accent ring.
  * Shared directly by both 3D CAD extrusion and 2D Canvas preview for 100% scale parity.
  */
 export async function getInlayShapes(
@@ -85,14 +86,36 @@ export async function getInlayShapes(
       targetWidth,
       targetHeight,
       config.letterSpacing,
-      config.fontScale
+      config.fontScale,
+      0
     );
   } else {
-    inscriptionShapes = generateIconShapes(
-      config.symbolId,
-      maxSafeDiameter * 0.8,
-      config.symbolScale
-    );
+    const cleanSubtext = (config.subtext || "").trim().toUpperCase();
+    if (cleanSubtext.length > 0) {
+      const iconShapes = generateIconShapes(
+        config.symbolId,
+        maxSafeDiameter * 0.5,
+        config.symbolScale,
+        maxSafeDiameter * 0.14
+      );
+      const subtextShapes = await generateTextShapes(
+        cleanSubtext,
+        config.fontFamily,
+        maxSafeDiameter * 0.64,
+        maxSafeDiameter * 0.19,
+        config.letterSpacing,
+        1.0,
+        -maxSafeDiameter * 0.25
+      );
+      inscriptionShapes = [...iconShapes, ...subtextShapes];
+    } else {
+      inscriptionShapes = generateIconShapes(
+        config.symbolId,
+        maxSafeDiameter * 0.72,
+        config.symbolScale,
+        0
+      );
+    }
   }
 
   const allShapes: THREE.Shape[] = [...inscriptionShapes];

@@ -5,7 +5,8 @@ import {
   CapPresetDef,
   SAMPLE_CAP_PRESETS,
   STARTER_1_CAP,
-  DEFAULT_12_CAPS,
+  GT3_STARTER_PRESET_IDS,
+  FORMULA_STARTER_PRESET_IDS,
   WHEEL_PRESETS,
 } from "@/config/wheelPresets";
 
@@ -60,7 +61,7 @@ interface CapStudioState {
   removeCapById: (id: string) => void;
   clearCaps: () => void;
   resetAllCaps: () => void;
-  loadStarterPack: (packType: "single" | "gt3_6" | "formula_12") => void;
+  loadStarterPack: (packType: "single" | "gt3" | "formula") => void;
 
   // Viewport Actions
   setCameraView: (view: CameraViewPreset) => void;
@@ -79,12 +80,12 @@ export const useCapStore = create<CapStudioState>()(
 
       baselineWheel: {
         presetId: "fanatec",
-        outerDiameter: 11.40,
-        baseInnerDiameter: 9.70,
-        toleranceModifier: 0.00,
-        capHeight: 4.20,
-        topWallThickness: 1.00,
-        inlayDepth: 0.40,
+        outerDiameter: 11.4,
+        baseInnerDiameter: 9.7,
+        toleranceModifier: 0.0,
+        capHeight: 4.2,
+        topWallThickness: 1.0,
+        inlayDepth: 0.4,
       },
 
       updateBaselineWheel: (updates) => {
@@ -92,7 +93,6 @@ export const useCapStore = create<CapStudioState>()(
         const updated = { ...current, ...updates };
         const { caps } = get();
 
-        // Synchronize all caps to the new baseline dimensions
         const syncCaps = caps.map((c) => ({
           ...c,
           presetId: updated.presetId,
@@ -113,6 +113,13 @@ export const useCapStore = create<CapStudioState>()(
       applyPresetToBaseline: (presetId: string) => {
         const preset = WHEEL_PRESETS.find((p) => p.id === presetId);
         if (!preset) return;
+
+        // When selecting Custom, preserve current custom dimensions if already tweaked,
+        // or keep current baseline dimensions while unlocking custom mode
+        if (presetId === "custom") {
+          get().updateBaselineWheel({ presetId: "custom" });
+          return;
+        }
 
         get().updateBaselineWheel({
           presetId,
@@ -179,7 +186,7 @@ export const useCapStore = create<CapStudioState>()(
 
       addCapFromPreset: (preset: CapPresetDef) => {
         const { caps, baselineWheel } = get();
-        const newId = `cap-${Date.now()}`;
+        const newId = `cap-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
         const newCap: ButtonCapConfig = {
           id: newId,
           name: preset.name,
@@ -192,6 +199,7 @@ export const useCapStore = create<CapStudioState>()(
           inlayDepth: baselineWheel.inlayDepth,
           inscriptionMode: preset.inscriptionMode,
           text: preset.text,
+          subtext: preset.subtext || "",
           fontFamily: preset.fontFamily,
           fontScale: preset.fontScale,
           letterSpacing: preset.letterSpacing,
@@ -213,7 +221,7 @@ export const useCapStore = create<CapStudioState>()(
 
       addCapFromScratch: (name?: string, text?: string) => {
         const { caps, baselineWheel } = get();
-        const newId = `cap-${Date.now()}`;
+        const newId = `cap-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
         const newIndex = caps.length + 1;
         const newCap: ButtonCapConfig = {
           id: newId,
@@ -226,18 +234,19 @@ export const useCapStore = create<CapStudioState>()(
           topWallThickness: baselineWheel.topWallThickness,
           inlayDepth: baselineWheel.inlayDepth,
           inscriptionMode: "text",
-          text: text || `C${newIndex}`,
+          text: text || "PIT",
+          subtext: "",
           fontFamily: "Orbitron",
           fontScale: 1.0,
           letterSpacing: 0.0,
-          symbolId: "lightning",
+          symbolId: "pit",
           symbolScale: 1.0,
           hasAccentRing: true,
           accentRingThickness: 0.55,
           reliefMode: "flush",
-          embossHeight: 0.40,
+          embossHeight: 0.4,
           bodyColor: "#18181B",
-          inlayColor: "#FF6600",
+          inlayColor: "#FFE600",
         };
 
         set({
@@ -256,6 +265,7 @@ export const useCapStore = create<CapStudioState>()(
                   name: preset.name,
                   inscriptionMode: preset.inscriptionMode,
                   text: preset.text,
+                  subtext: preset.subtext || "",
                   fontFamily: preset.fontFamily,
                   fontScale: preset.fontScale,
                   letterSpacing: preset.letterSpacing,
@@ -276,7 +286,7 @@ export const useCapStore = create<CapStudioState>()(
       duplicateActiveCap: () => {
         const active = get().getActiveCap();
         const { caps } = get();
-        const dupId = `cap-${Date.now()}`;
+        const dupId = `cap-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
         const duplicated: ButtonCapConfig = {
           ...active,
           id: dupId,
@@ -312,49 +322,56 @@ export const useCapStore = create<CapStudioState>()(
         });
       },
 
-      loadStarterPack: (packType: "single" | "gt3_6" | "formula_12") => {
+      loadStarterPack: (packType: "single" | "gt3" | "formula") => {
         const { baselineWheel } = get();
-        const mapCaps = (baseList: ButtonCapConfig[]) =>
-          baseList.map((c, i) => ({
-            ...c,
-            id: `cap-${Date.now()}-${i}`,
-            presetId: baselineWheel.presetId,
-            outerDiameter: baselineWheel.outerDiameter,
-            baseInnerDiameter: baselineWheel.baseInnerDiameter,
-            toleranceModifier: baselineWheel.toleranceModifier,
-            capHeight: baselineWheel.capHeight,
-            topWallThickness: baselineWheel.topWallThickness,
-            inlayDepth: baselineWheel.inlayDepth,
-          }));
+        const presetIdList =
+          packType === "gt3"
+            ? GT3_STARTER_PRESET_IDS
+            : packType === "formula"
+            ? FORMULA_STARTER_PRESET_IDS
+            : ["gt3-pit"];
 
-        if (packType === "single") {
-          const single = mapCaps([STARTER_1_CAP]);
-          set({ caps: single, activeCapId: single[0].id });
-        } else if (packType === "gt3_6") {
-          const gt3 = mapCaps(DEFAULT_12_CAPS.slice(0, 6));
-          set({ caps: gt3, activeCapId: gt3[0].id });
-        } else {
-          const all12 = mapCaps(DEFAULT_12_CAPS);
-          set({ caps: all12, activeCapId: all12[0].id });
+        const builtCaps: ButtonCapConfig[] = presetIdList
+          .map((pid, idx): ButtonCapConfig | null => {
+            const preset = SAMPLE_CAP_PRESETS.find((p) => p.id === pid);
+            if (!preset) return null;
+            return {
+              id: `cap-${Date.now()}-${idx}`,
+              name: preset.name,
+              presetId: baselineWheel.presetId,
+              outerDiameter: baselineWheel.outerDiameter,
+              baseInnerDiameter: baselineWheel.baseInnerDiameter,
+              toleranceModifier: baselineWheel.toleranceModifier,
+              capHeight: baselineWheel.capHeight,
+              topWallThickness: baselineWheel.topWallThickness,
+              inlayDepth: baselineWheel.inlayDepth,
+              inscriptionMode: preset.inscriptionMode,
+              text: preset.text,
+              subtext: preset.subtext || "",
+              fontFamily: preset.fontFamily,
+              fontScale: preset.fontScale,
+              letterSpacing: preset.letterSpacing,
+              symbolId: preset.symbolId,
+              symbolScale: preset.symbolScale,
+              hasAccentRing: preset.hasAccentRing,
+              accentRingThickness: preset.accentRingThickness,
+              reliefMode: preset.reliefMode,
+              embossHeight: preset.embossHeight,
+              bodyColor: preset.bodyColor,
+              inlayColor: preset.inlayColor,
+            };
+          })
+          .filter((c): c is ButtonCapConfig => c !== null);
+
+        if (builtCaps.length > 0) {
+          set({ caps: builtCaps, activeCapId: builtCaps[0].id });
         }
       },
 
       resetAllCaps: () => {
-        const { baselineWheel } = get();
-        const starter: ButtonCapConfig = {
-          ...STARTER_1_CAP,
-          id: `cap-${Date.now()}`,
-          presetId: baselineWheel.presetId,
-          outerDiameter: baselineWheel.outerDiameter,
-          baseInnerDiameter: baselineWheel.baseInnerDiameter,
-          toleranceModifier: baselineWheel.toleranceModifier,
-          capHeight: baselineWheel.capHeight,
-          topWallThickness: baselineWheel.topWallThickness,
-          inlayDepth: baselineWheel.inlayDepth,
-        };
         set({
-          caps: [starter],
-          activeCapId: starter.id,
+          caps: [],
+          activeCapId: "",
           wizardStep: 1,
           explodeOffset: 0,
           isWireframe: false,
@@ -380,7 +397,7 @@ export const useCapStore = create<CapStudioState>()(
         set({ printOrientation: orientation }),
     }),
     {
-      name: "sim-cap-studio-storage-v4",
+      name: "sim-cap-studio-storage-v5",
       partialize: (state) => ({
         caps: state.caps,
         activeCapId: state.activeCapId,

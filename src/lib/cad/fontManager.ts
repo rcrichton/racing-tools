@@ -48,30 +48,31 @@ export function opentypePathToShapePath(
   path: Path,
   offsetX: number = 0,
   offsetY: number = 0,
-  scale: number = 1
+  scale: number = 1,
+  targetYOffset: number = 0
 ): THREE.ShapePath {
   const sp = new THREE.ShapePath();
 
   for (const cmd of path.commands) {
     if (cmd.type === "M") {
-      sp.moveTo((cmd.x - offsetX) * scale, -(cmd.y - offsetY) * scale);
+      sp.moveTo((cmd.x - offsetX) * scale, -(cmd.y - offsetY) * scale + targetYOffset);
     } else if (cmd.type === "L") {
-      sp.lineTo((cmd.x - offsetX) * scale, -(cmd.y - offsetY) * scale);
+      sp.lineTo((cmd.x - offsetX) * scale, -(cmd.y - offsetY) * scale + targetYOffset);
     } else if (cmd.type === "Q") {
       sp.quadraticCurveTo(
         (cmd.x1 - offsetX) * scale,
-        -(cmd.y1 - offsetY) * scale,
+        -(cmd.y1 - offsetY) * scale + targetYOffset,
         (cmd.x - offsetX) * scale,
-        -(cmd.y - offsetY) * scale
+        -(cmd.y - offsetY) * scale + targetYOffset
       );
     } else if (cmd.type === "C") {
       sp.bezierCurveTo(
         (cmd.x1 - offsetX) * scale,
-        -(cmd.y1 - offsetY) * scale,
+        -(cmd.y1 - offsetY) * scale + targetYOffset,
         (cmd.x2 - offsetX) * scale,
-        -(cmd.y2 - offsetY) * scale,
+        -(cmd.y2 - offsetY) * scale + targetYOffset,
         (cmd.x - offsetX) * scale,
-        -(cmd.y - offsetY) * scale
+        -(cmd.y - offsetY) * scale + targetYOffset
       );
     }
   }
@@ -85,7 +86,8 @@ export function opentypePathToShapePath(
 function createFallbackTextShapes(
   text: string,
   targetWidth: number,
-  targetHeight: number
+  targetHeight: number,
+  targetYOffset: number = 0
 ): THREE.Shape[] {
   const shapes: THREE.Shape[] = [];
   const charCount = Math.max(1, text.length);
@@ -100,10 +102,10 @@ function createFallbackTextShapes(
     const halfW = charWidth / 2;
     const halfH = targetHeight / 2;
 
-    shape.moveTo(cx - halfW, -halfH);
-    shape.lineTo(cx + halfW, -halfH);
-    shape.lineTo(cx + halfW, halfH);
-    shape.lineTo(cx - halfW, halfH);
+    shape.moveTo(cx - halfW, -halfH + targetYOffset);
+    shape.lineTo(cx + halfW, -halfH + targetYOffset);
+    shape.lineTo(cx + halfW, halfH + targetYOffset);
+    shape.lineTo(cx - halfW, halfH + targetYOffset);
     shape.closePath();
 
     shapes.push(shape);
@@ -121,14 +123,20 @@ export async function generateTextShapes(
   maxWidth: number,
   maxHeight: number,
   letterSpacing: number = 0.02,
-  userFontScale: number = 1.0
+  userFontScale: number = 1.0,
+  targetYOffset: number = 0
 ): Promise<THREE.Shape[]> {
   const cleanText = (text || "PIT").trim().toUpperCase();
   if (!cleanText) return [];
 
   const font = await loadFont(fontFamily);
   if (!font) {
-    return createFallbackTextShapes(cleanText, maxWidth * 0.8, maxHeight * 0.8);
+    return createFallbackTextShapes(
+      cleanText,
+      maxWidth * 0.8,
+      maxHeight * 0.8,
+      targetYOffset
+    );
   }
 
   // Base font size to measure
@@ -150,11 +158,16 @@ export async function generateTextShapes(
   const baseScale = Math.min(fitScaleW, fitScaleH);
   const finalScale = baseScale * userFontScale;
 
-  const sp = opentypePathToShapePath(path, centerX, centerY, finalScale);
+  const sp = opentypePathToShapePath(path, centerX, centerY, finalScale, targetYOffset);
   const shapes = sp.toShapes();
 
   if (!shapes || shapes.length === 0) {
-    return createFallbackTextShapes(cleanText, maxWidth * 0.8, maxHeight * 0.8);
+    return createFallbackTextShapes(
+      cleanText,
+      maxWidth * 0.8,
+      maxHeight * 0.8,
+      targetYOffset
+    );
   }
 
   return shapes;
