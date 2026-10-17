@@ -31,9 +31,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Sim-Cap Studio | 3D Dual-Color Sim Racing Button Cap Designer",
+  title: "Racing Tools | Free Utilities for Sim Racers & Rig Builders",
   description:
-    "Design and export custom 3D-printable, dual-color (multi-material/AMS) sim racing steering wheel button caps for Fanatec, Moza, Simucube, and Logitech.",
+    "Free, precision web utilities for sim racers and builders, featuring Sim-Cap Studio for 3D printable dual-color steering wheel button caps.",
 };
 
 export default function RootLayout({

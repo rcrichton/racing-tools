@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { useCapStore, WizardStep } from "@/store/useCapStore";
 import { WHEEL_PRESETS } from "@/config/wheelPresets";
 import {
@@ -48,20 +49,26 @@ export const WizardHeader: React.FC = () => {
   return (
     <>
       <header className="flex flex-col md:flex-row items-stretch md:items-center justify-between px-4 lg:px-8 py-2.5 bg-[#0F1219] border-b border-white/[0.07] z-20 gap-3">
-        {/* Brand */}
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center shadow-md shadow-orange-500/20 flex-shrink-0">
+        {/* Brand with Link to Racing Tools Hub */}
+        <Link
+          href="/"
+          className="flex items-center gap-2.5 group hover:opacity-95 transition"
+          title="Back to Racing Tools Directory"
+        >
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center shadow-md shadow-orange-500/20 flex-shrink-0 group-hover:scale-105 transition-transform">
             <Compass className="w-4 h-4 text-white" />
           </div>
           <div>
-            <h1 className="text-sm font-bold tracking-wider text-white font-display uppercase">
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] font-mono text-slate-500 group-hover:text-orange-400 transition uppercase tracking-wider">
+                Racing Tools /
+              </span>
+            </div>
+            <h1 className="text-sm font-bold tracking-wider text-white font-display uppercase leading-none">
               SIM-CAP <span className="text-orange-500">STUDIO</span>
             </h1>
-            <p className="text-[11px] text-slate-400 hidden sm:block">
-              3D Printable Sim Racing Button Cap Designer
-            </p>
           </div>
-        </div>
+        </Link>
 
         {/* Wizard Stepper Navigation */}
         <nav
