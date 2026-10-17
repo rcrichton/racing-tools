@@ -42,6 +42,7 @@ export const Step3ReviewExport: React.FC = () => {
   const [isExporting3MFSingle, setIsExporting3MFSingle] = useState(false);
   const [isExportingSTLBatch, setIsExportingSTLBatch] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
   const [progressStatus, setProgressStatus] = useState<{
     pct: number;
     msg: string;
@@ -279,17 +280,64 @@ export const Step3ReviewExport: React.FC = () => {
         </button>
 
         <button
-          onClick={() => {
-            if (confirm("Clear all caps and start a new set?")) {
-              resetAllCaps();
-            }
-          }}
+          onClick={() => setShowResetModal(true)}
           className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.05] text-xs transition"
         >
           <RotateCcw className="w-3.5 h-3.5" />
           <span>Start New Set</span>
         </button>
       </div>
+
+      {/* Reset Confirmation Modal */}
+      {showResetModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150"
+          onClick={() => setShowResetModal(false)}
+        >
+          <div
+            className="bg-[#12151E] border border-white/10 rounded-2xl w-full max-w-md p-6 shadow-2xl relative text-slate-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 pb-3 border-b border-white/10">
+              <div className="w-9 h-9 rounded-xl bg-orange-500/15 border border-orange-500/30 flex items-center justify-center text-orange-400 shrink-0">
+                <RotateCcw className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-white font-display uppercase tracking-wide">
+                  Start a New Set?
+                </h3>
+                <span className="text-[11px] text-slate-400">
+                  This will clear your current button caps
+                </span>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-400 leading-relaxed py-4">
+              All {caps.length} button caps in this set will be cleared, and you will return to Step 1 to select or measure your wheel fitment.
+            </p>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                onClick={() => setShowResetModal(false)}
+                className="px-4 py-2 rounded-xl bg-[#090A0F] border border-white/10 text-slate-300 hover:text-white text-xs font-medium transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowResetModal(false);
+                  resetAllCaps();
+                }}
+                className="px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold shadow-md transition"
+              >
+                Clear & Start New Set
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Support Modal */}
       <SupportModal
