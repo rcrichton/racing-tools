@@ -6,6 +6,7 @@ import { WHEEL_PRESETS } from "@/config/wheelPresets";
 import { exportAllInOne3MF, exportSingleCap3MF } from "@/lib/cad/export3MF";
 import { exportBatch12Zip } from "@/lib/cad/exportSTL";
 import { CapFaceBadge } from "@/components/wizard/CapFaceBadge";
+import { ShareSetButton } from "@/components/wizard/ShareSetButton";
 import { SupportBanner } from "@/components/support/SupportBanner";
 import { SupportModal } from "@/components/support/SupportModal";
 import {
@@ -200,6 +201,8 @@ export const Step3ReviewExport: React.FC = () => {
             )}
             <span>Active Cap ({activeCap.name}) .3MF</span>
           </button>
+
+          <ShareSetButton variant="export" />
 
           <button
             onClick={handleExportSTLBatch}

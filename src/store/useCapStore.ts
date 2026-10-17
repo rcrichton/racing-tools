@@ -62,6 +62,11 @@ interface CapStudioState {
   clearCaps: () => void;
   resetAllCaps: () => void;
   loadStarterPack: (packType: "single" | "gt3" | "formula") => void;
+  loadSharedCapSet: (payload: {
+    caps: ButtonCapConfig[];
+    baselineWheel?: BaselineWheelConfig;
+    printOrientation?: PrintOrientation;
+  }) => void;
 
   // Viewport Actions
   setCameraView: (view: CameraViewPreset) => void;
@@ -366,6 +371,30 @@ export const useCapStore = create<CapStudioState>()(
         if (builtCaps.length > 0) {
           set({ caps: builtCaps, activeCapId: builtCaps[0].id });
         }
+      },
+
+      loadSharedCapSet: ({ caps: incomingCaps, baselineWheel: incomingWheel, printOrientation }) => {
+        const targetWheel = incomingWheel || get().baselineWheel;
+        const syncedCaps: ButtonCapConfig[] = incomingCaps.map((c, idx) => ({
+          ...c,
+          id: c.id || `cap-shared-${Date.now()}-${idx}`,
+          presetId: targetWheel.presetId,
+          outerDiameter: targetWheel.outerDiameter,
+          baseInnerDiameter: targetWheel.baseInnerDiameter,
+          toleranceModifier: targetWheel.toleranceModifier,
+          capHeight: targetWheel.capHeight,
+          topWallThickness: targetWheel.topWallThickness,
+          inlayDepth: targetWheel.inlayDepth,
+        }));
+
+        set({
+          baselineWheel: targetWheel,
+          caps: syncedCaps,
+          activeCapId: syncedCaps[0]?.id || "",
+          printOrientation: printOrientation || get().printOrientation,
+          wizardStep: 2,
+          explodeOffset: 0,
+        });
       },
 
       resetAllCaps: () => {

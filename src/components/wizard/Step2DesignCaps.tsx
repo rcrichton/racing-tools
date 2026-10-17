@@ -16,6 +16,7 @@ import { ViewportControls } from "@/components/viewport/ViewportControls";
 import { Face2DPreview } from "@/components/preview/Face2DPreview";
 import { AddCapModal } from "@/components/wizard/AddCapModal";
 import { CapFaceBadge } from "@/components/wizard/CapFaceBadge";
+import { ShareSetButton } from "@/components/wizard/ShareSetButton";
 import {
   ArrowLeft,
   ArrowRight,
@@ -371,6 +372,8 @@ export const Step2DesignCaps: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2">
+              <ShareSetButton variant="tray" />
+
               <button
                 onClick={() => handleOpenAddModal("bundles")}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#090A0F] hover:bg-white/[0.06] border border-white/10 text-slate-300 hover:text-white font-medium text-xs transition"

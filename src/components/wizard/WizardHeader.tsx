@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { SUPPORT_CONFIG } from "@/config/support";
 import { SupportModal } from "@/components/support/SupportModal";
+import { ShareSetButton } from "@/components/wizard/ShareSetButton";
 
 export const WizardHeader: React.FC = () => {
   const { wizardStep, setWizardStep, baselineWheel, caps } = useCapStore();
@@ -126,8 +127,10 @@ export const WizardHeader: React.FC = () => {
           })}
         </nav>
 
-        {/* Right Action: Tip / Support & Slicer Guide */}
+        {/* Right Action: Share Set, Tip / Support & Slicer Guide */}
         <div className="flex items-center justify-end gap-2">
+          <ShareSetButton variant="header" />
+
           {SUPPORT_CONFIG.enabled && (
             <button
               onClick={() => setShowSupport(true)}
@@ -198,7 +201,7 @@ export const WizardHeader: React.FC = () => {
                     <div>
                       <strong className="text-white">1. Elephant Foot Compensation = 0.00 mm</strong>
                       <p className="text-slate-400 mt-0.5 leading-relaxed">
-                        <em>Quality → Advanced → Elephant foot compensation.</em> The default (0.15mm) shrinks the text perimeters inward, destroying tiny letters. Set this to <strong>0.00 mm</strong> for multi-material face-down prints.
+                        Location: <strong className="text-slate-200">Quality → Precision → Elephant foot compensation</strong> (or toggle <em>Advanced</em> in some versions). Slicers default this to 0.15mm, which aggressively shrinks first-layer text perimeters inward and turns tiny letters into distorted blurs. Set to <strong className="text-white">0.00 mm</strong> for multi-material face-down prints.
                       </p>
                     </div>
                   </div>
@@ -206,9 +209,9 @@ export const WizardHeader: React.FC = () => {
                   <div className="flex items-start gap-2.5 bg-[#090A0F] p-3 rounded-xl border border-white/[0.06]">
                     <CheckCircle className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
                     <div>
-                      <strong className="text-white">2. Initial Layer Line Width = 0.35 – 0.38 mm (0.4 Nozzle)</strong>
+                      <strong className="text-white">2. First Layer Sequence: Print Inlay / Text FIRST</strong>
                       <p className="text-slate-400 mt-0.5 leading-relaxed">
-                        <em>Quality → Line Width → Initial layer.</em> Slicers default this to <strong>0.50 mm</strong>, which turns 2mm letters into blobs. Reduce to <strong>0.36 mm</strong>. <em>(Note: Do NOT set to 0.20 mm on a 0.4 nozzle—it causes severe nozzle tearing and under-extrusion.)</em>
+                        Location: Click the <strong className="text-slate-200">cog/gear icon (⚙️) next to the plate label</strong> (e.g. Plate 1) on the 3D build plate workspace → <strong className="text-slate-200">First layer filament sequence</strong>. Set or drag your contrasting inlay/text color to print <strong className="text-white">FIRST</strong>, and the cap body color to print <strong className="text-white">SECOND</strong>. This ensures clean letter perimeters before the body squishes around them.
                       </p>
                     </div>
                   </div>
@@ -216,9 +219,9 @@ export const WizardHeader: React.FC = () => {
                   <div className="flex items-start gap-2.5 bg-[#090A0F] p-3 rounded-xl border border-white/[0.06]">
                     <CheckCircle className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
                     <div>
-                      <strong className="text-white">3. Print Inlay/Text FIRST (Filament Sequence)</strong>
+                      <strong className="text-white">3. Initial Layer Line Width = 0.35 – 0.38 mm (for 0.4 Nozzle)</strong>
                       <p className="text-slate-400 mt-0.5 leading-relaxed">
-                        <em>Print Options → First layer filament sequence.</em> Ensure the contrasting text color is printed <strong>before</strong> the cap body so the dark body doesn&apos;t squish into the text pocket.
+                        Location: <strong className="text-slate-200">Quality → Line width → Initial layer</strong>. Standard profiles default to 0.50 mm (wide extrusion for adhesion), which turns 2mm letters into solid blobs. Reduce to <strong className="text-white">0.36 mm</strong>. <em>(Caution: Do not set to 0.20 mm on a 0.4 nozzle—it causes severe nozzle tearing and under-extrusion.)</em>
                       </p>
                     </div>
                   </div>
@@ -226,9 +229,9 @@ export const WizardHeader: React.FC = () => {
                   <div className="flex items-start gap-2.5 bg-[#090A0F] p-3 rounded-xl border border-white/[0.06]">
                     <CheckCircle className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
                     <div>
-                      <strong className="text-white">4. Slow Down First Layer to 15–20 mm/s</strong>
+                      <strong className="text-white">4. First Layer Speed = 15 – 20 mm/s</strong>
                       <p className="text-slate-400 mt-0.5 leading-relaxed">
-                        <em>Speed → First layer speed.</em> Set initial layer walls and infill to <strong>15–20 mm/s</strong>. Tiny sharp corners need slow speeds to adhere without dragging.
+                        Location: <strong className="text-slate-200">Speed → First layer / Initial layer</strong>. Slow down initial layer walls and infill to <strong className="text-white">15–20 mm/s</strong>. Tiny sharp corners of letterforms need slow, steady extrusion to lay flat without curling or dragging.
                       </p>
                     </div>
                   </div>
