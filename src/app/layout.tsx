@@ -1,39 +1,32 @@
 import type { Metadata } from "next";
-import { Orbitron, Chakra_Petch, JetBrains_Mono, Inter } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-const orbitron = Orbitron({
+const orbitron = localFont({
+  src: "../../public/fonts/Orbitron-Bold.ttf",
   variable: "--font-orbitron",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
+  weight: "700",
   display: "swap",
 });
 
-const chakraPetch = Chakra_Petch({
+const chakraPetch = localFont({
+  src: "../../public/fonts/ChakraPetch-Bold.ttf",
   variable: "--font-chakra",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: "700",
   display: "swap",
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const jetbrainsMono = localFont({
+  src: "../../public/fonts/JetBrainsMono-Bold.ttf",
   variable: "--font-mono",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  display: "swap",
-});
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: "700",
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Racing Tools | Free Utilities for Sim Racers & Rig Builders",
+  title: "Racing Tools | Precision Web Utilities for Sim Racing",
   description:
-    "Free, precision web utilities for sim racers and builders, featuring Sim-Cap Studio for 3D printable dual-color steering wheel button caps.",
+    "Focused, free web utilities for sim racers and rig builders, featuring Sim-Cap Studio for 3D-printable dual-color steering wheel button caps.",
 };
 
 export default function RootLayout({
@@ -44,7 +37,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${orbitron.variable} ${chakraPetch.variable} ${jetbrainsMono.variable} ${inter.variable} dark h-full antialiased`}
+      className={`${orbitron.variable} ${chakraPetch.variable} ${jetbrainsMono.variable} dark h-full antialiased`}
     >
       <body className="min-h-full bg-[#090A0F] text-[#E2E8F0] font-sans flex flex-col selection:bg-orange-500/30 selection:text-orange-300">
         {children}
@@ -52,3 +45,4 @@ export default function RootLayout({
     </html>
   );
 }
+

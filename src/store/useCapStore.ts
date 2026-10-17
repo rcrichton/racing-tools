@@ -85,7 +85,7 @@ export const useCapStore = create<CapStudioState>()(
         toleranceModifier: 0.0,
         capHeight: 4.2,
         topWallThickness: 1.0,
-        inlayDepth: 0.4,
+        inlayDepth: 0.5,
       },
 
       updateBaselineWheel: (updates) => {
@@ -241,7 +241,7 @@ export const useCapStore = create<CapStudioState>()(
           letterSpacing: 0.04,
           symbolId: "pit",
           symbolScale: 1.0,
-          hasAccentRing: true,
+          hasAccentRing: false,
           accentRingThickness: 0.55,
           reliefMode: "flush",
           embossHeight: 0.4,
@@ -397,7 +397,7 @@ export const useCapStore = create<CapStudioState>()(
         set({ printOrientation: orientation }),
     }),
     {
-      name: "sim-cap-studio-storage-v5",
+      name: "sim-cap-studio-storage-v6",
       partialize: (state) => ({
         caps: state.caps,
         activeCapId: state.activeCapId,

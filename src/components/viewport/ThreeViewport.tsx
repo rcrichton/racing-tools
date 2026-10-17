@@ -51,32 +51,23 @@ function SceneContent() {
     useCapStore();
 
   const [cadResult, setCadResult] = useState<CapGeometryResult | null>(null);
-  const [isCalculating, setIsCalculating] = useState(false);
   const onUserInteractRef = useRef(false);
 
   // Cross-section clipping plane cutting along X=0
   const clipPlane = useMemo(() => new THREE.Plane(new THREE.Vector3(1, 0, 0), 0), []);
 
-  const { gl } = useThree();
-  useEffect(() => {
-    gl.localClippingEnabled = isCrossSection;
-  }, [gl, isCrossSection]);
-
   // Rebuild geometry whenever cap parameters change
   useEffect(() => {
     let active = true;
-    setIsCalculating(true);
 
     buildCapGeometry(cap)
       .then((res) => {
         if (active) {
           setCadResult(res);
-          setIsCalculating(false);
         }
       })
       .catch((err) => {
         console.error("Failed to build cap geometry:", err);
-        if (active) setIsCalculating(false);
       });
 
     return () => {
@@ -178,33 +169,11 @@ function SceneContent() {
           )}
         </group>
       )}
-
-      {/* Calculating spinner indicator */}
-      {isCalculating && (
-        <mesh position={[0, cap.capHeight + 3, 0]}>
-          <ringGeometry args={[1.5, 1.8, 24]} />
-          <meshBasicMaterial color="#FF9900" side={THREE.DoubleSide} />
-        </mesh>
-      )}
     </>
   );
 }
 
 export const ThreeViewport: React.FC = () => {
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  if (!isMounted) {
-    return (
-      <div className="w-full h-full flex flex-col items-center justify-center bg-[#090A0F] text-slate-500 font-mono text-xs">
-        <div className="w-8 h-8 border-2 border-orange-500/30 border-t-orange-500 rounded-full animate-spin mb-3" />
-        <span>Initializing 3D CAD Engine...</span>
-      </div>
-    );
-  }
 
   return (
     <div className="w-full h-full relative bg-[#090A0F] overflow-hidden select-none">

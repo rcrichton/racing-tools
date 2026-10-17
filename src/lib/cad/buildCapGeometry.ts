@@ -57,17 +57,17 @@ export async function getInlayShapes(
   const Ro = OD / 2;
   const C = 0.25; // 0.25mm top outer chamfer
 
-  // Safe usable diameter on top face (allowing 0.20mm buffer from outer chamfer or accent ring)
+  // Safe usable diameter on top face (0.15mm margin from outer chamfer or accent ring)
   const maxSafeDiameter = hasAccentRing
-    ? Math.max(2.0, (Ro - C - 0.20 - accentRingThickness - 0.20) * 2)
-    : Math.max(3.0, (Ro - C - 0.20) * 2);
+    ? Math.max(2.0, (Ro - C - 0.18 - accentRingThickness - 0.18) * 2)
+    : Math.max(3.0, (Ro - C - 0.15) * 2);
 
   let inscriptionShapes: THREE.Shape[] = [];
 
   if (config.inscriptionMode === "text") {
-    // Maximize available space: allow width and height to expand to the full circular safe boundary
-    const targetWidth = maxSafeDiameter * 0.96;
-    const targetHeight = maxSafeDiameter * 0.88;
+    // Maximize available space across the circular face
+    const targetWidth = maxSafeDiameter * 0.95;
+    const targetHeight = maxSafeDiameter * 0.78;
 
     inscriptionShapes = await generateTextShapes(
       config.text,
@@ -84,25 +84,25 @@ export async function getInlayShapes(
     if (cleanSubtext.length > 0) {
       const iconShapes = generateIconShapes(
         config.symbolId,
-        maxSafeDiameter * 0.58,
+        maxSafeDiameter * 0.52,
         config.symbolScale,
-        maxSafeDiameter * 0.16
+        maxSafeDiameter * 0.19
       );
       const subtextShapes = await generateTextShapes(
         cleanSubtext,
-        config.fontFamily,
-        maxSafeDiameter * 0.76,
-        maxSafeDiameter * 0.24,
-        config.letterSpacing,
+        "JetBrains Mono",
+        maxSafeDiameter * 0.78,
+        maxSafeDiameter * 0.30,
+        0.02,
         1.0,
-        -maxSafeDiameter * 0.24,
+        -maxSafeDiameter * 0.21,
         maxSafeDiameter
       );
       inscriptionShapes = [...iconShapes, ...subtextShapes];
     } else {
       inscriptionShapes = generateIconShapes(
         config.symbolId,
-        maxSafeDiameter * 0.84,
+        maxSafeDiameter * 0.86,
         config.symbolScale,
         0
       );

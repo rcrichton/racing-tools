@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useCapStore } from "@/store/useCapStore";
 import {
   SAMPLE_CAP_PRESETS,
@@ -46,17 +46,21 @@ export const AddCapModal: React.FC<AddCapModalProps> = ({
     loadStarterPack,
   } = useCapStore();
 
-  const [viewState, setViewState] = useState<"choice" | "preset">(
-    mode === "applyToCurrent" ? "preset" : initialView
+  const [viewStateOverride, setViewState] = useState<"choice" | "preset" | null>(
+    null
   );
   const [selectedCategory, setSelectedCategory] =
     useState<(typeof CATEGORIES)[number]>("All");
 
-  useEffect(() => {
-    if (isOpen) {
-      setViewState(mode === "applyToCurrent" ? "preset" : initialView);
-    }
-  }, [isOpen, mode, initialView]);
+  const viewState =
+    mode === "applyToCurrent"
+      ? "preset"
+      : viewStateOverride ?? initialView;
+
+  const handleClose = () => {
+    setViewState(null);
+    onClose();
+  };
 
   if (!isOpen) return null;
 
@@ -71,12 +75,12 @@ export const AddCapModal: React.FC<AddCapModalProps> = ({
     } else {
       addCapFromPreset(preset);
     }
-    onClose();
+    handleClose();
   };
 
   const handleStartCustom = () => {
     addCapFromScratch("Custom Cap", "PIT");
-    onClose();
+    handleClose();
   };
 
   return (
@@ -111,7 +115,7 @@ export const AddCapModal: React.FC<AddCapModalProps> = ({
           </div>
 
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition"
           >
             <X className="w-4 h-4" />
@@ -229,7 +233,7 @@ export const AddCapModal: React.FC<AddCapModalProps> = ({
             <button
               onClick={() => {
                 loadStarterPack("gt3");
-                onClose();
+                handleClose();
               }}
               className="px-3 py-1.5 rounded-lg bg-[#141824] hover:bg-white/10 border border-white/10 text-slate-200 hover:text-white transition text-xs font-medium"
             >
@@ -238,7 +242,7 @@ export const AddCapModal: React.FC<AddCapModalProps> = ({
             <button
               onClick={() => {
                 loadStarterPack("formula");
-                onClose();
+                handleClose();
               }}
               className="px-3 py-1.5 rounded-lg bg-[#141824] hover:bg-white/10 border border-white/10 text-slate-200 hover:text-white transition text-xs font-medium"
             >
