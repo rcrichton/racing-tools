@@ -6,6 +6,8 @@ import { WHEEL_PRESETS } from "@/config/wheelPresets";
 import { exportAllInOne3MF, exportSingleCap3MF } from "@/lib/cad/export3MF";
 import { exportBatch12Zip } from "@/lib/cad/exportSTL";
 import { CapFaceBadge } from "@/components/wizard/CapFaceBadge";
+import { SupportBanner } from "@/components/support/SupportBanner";
+import { SupportModal } from "@/components/support/SupportModal";
 import {
   Download,
   FileArchive,
@@ -39,6 +41,7 @@ export const Step3ReviewExport: React.FC = () => {
   const [isExporting3MFSet, setIsExporting3MFSet] = useState(false);
   const [isExporting3MFSingle, setIsExporting3MFSingle] = useState(false);
   const [isExportingSTLBatch, setIsExportingSTLBatch] = useState(false);
+  const [showSupportModal, setShowSupportModal] = useState(false);
   const [progressStatus, setProgressStatus] = useState<{
     pct: number;
     msg: string;
@@ -213,6 +216,9 @@ export const Step3ReviewExport: React.FC = () => {
         </div>
       </div>
 
+      {/* Voluntary Support / Tipping Appreciation Banner */}
+      <SupportBanner onOpenModal={() => setShowSupportModal(true)} />
+
       {/* Cap Set Review Grid */}
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between text-xs">
@@ -278,6 +284,13 @@ export const Step3ReviewExport: React.FC = () => {
           <span>Start New Set</span>
         </button>
       </div>
+
+      {/* Support Modal */}
+      <SupportModal
+        isOpen={showSupportModal}
+        onClose={() => setShowSupportModal(false)}
+        source="banner"
+      />
     </div>
   );
 };

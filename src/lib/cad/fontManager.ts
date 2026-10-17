@@ -22,7 +22,7 @@ export async function loadFont(family: string): Promise<Font | null> {
     return fontLoadingPromises.get(family)!;
   }
 
-  const url = FONT_URLS[family] || FONT_URLS.Orbitron;
+  const url = FONT_URLS[family] || FONT_URLS["JetBrains Mono"];
   const promise = (async () => {
     try {
       const res = await fetch(url);
@@ -122,9 +122,10 @@ export async function generateTextShapes(
   fontFamily: "Orbitron" | "Chakra Petch" | "JetBrains Mono",
   maxWidth: number,
   maxHeight: number,
-  letterSpacing: number = 0.02,
+  letterSpacing: number = 0.04,
   userFontScale: number = 1.0,
-  targetYOffset: number = 0
+  targetYOffset: number = 0,
+  maxSafeDiameter?: number
 ): Promise<THREE.Shape[]> {
   const cleanText = (text || "PIT").trim().toUpperCase();
   if (!cleanText) return [];
@@ -141,9 +142,12 @@ export async function generateTextShapes(
 
   // Base font size to measure
   const baseFontSize = 72;
+  // Enforce a print-safe minimum letter spacing (>=0.04) so adjacent character perimeters
+  // maintain at least 0.35-0.45mm physical clearance and don't fuse together during 3D printing
+  const effectiveSpacing = Math.max(0.04, letterSpacing ?? 0.04);
   const path = font.getPath(cleanText, 0, 0, baseFontSize, {
     kerning: true,
-    letterSpacing: letterSpacing,
+    letterSpacing: effectiveSpacing,
   });
 
   const bb = path.getBoundingBox();
@@ -152,10 +156,18 @@ export async function generateTextShapes(
   const centerX = (bb.x1 + bb.x2) / 2;
   const centerY = (bb.y1 + bb.y2) / 2;
 
-  // Auto-scale based on character count and bounding box
+  // Auto-scale based on bounding box and circular face constraints
   const fitScaleW = maxWidth / rawW;
   const fitScaleH = maxHeight / rawH;
-  const baseScale = Math.min(fitScaleW, fitScaleH);
+  let baseScale = Math.min(fitScaleW, fitScaleH);
+
+  if (maxSafeDiameter && maxSafeDiameter > 0) {
+    // Ensure all 4 corners of the rectangular bounding box fit safely inside the circle
+    const rawDiag = Math.sqrt(rawW * rawW + rawH * rawH);
+    const fitScaleDiag = (maxSafeDiameter * 0.96) / rawDiag;
+    baseScale = Math.min(baseScale, fitScaleDiag);
+  }
+
   const finalScale = baseScale * userFontScale;
 
   const sp = opentypePathToShapePath(path, centerX, centerY, finalScale, targetYOffset);

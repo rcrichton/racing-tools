@@ -100,6 +100,11 @@ export const InscriptionControls: React.FC = () => {
               placeholder="PIT"
               className="px-3 py-2 bg-[#090A0F] border border-white/[0.08] rounded-lg text-white font-display font-bold text-base tracking-wider focus:outline-none focus:border-orange-500 text-center uppercase"
             />
+            {(cap.text || "").length >= 4 && (
+              <p className="text-[11px] text-amber-400/90 leading-tight">
+                💡 <strong>4-letter text:</strong> Best printed with a 0.2mm nozzle. On a standard 0.4mm nozzle, 1–3 characters (e.g. <code>WIP</code>) and JetBrains font give the sharpest results.
+              </p>
+            )}
           </div>
 
           {/* Quick-Select Racing Chips */}
@@ -130,9 +135,9 @@ export const InscriptionControls: React.FC = () => {
             <div className="grid grid-cols-3 gap-1.5">
               {(
                 [
+                  { id: "JetBrains Mono", label: "Bold (Sharp)" },
                   { id: "Orbitron", label: "Orbitron" },
                   { id: "Chakra Petch", label: "Chakra" },
-                  { id: "JetBrains Mono", label: "JetBrains" },
                 ] as const
               ).map((f) => (
                 <button
@@ -176,15 +181,15 @@ export const InscriptionControls: React.FC = () => {
               <div className="flex justify-between items-center text-slate-300">
                 <span>Spacing</span>
                 <span className="font-mono text-[11px] text-slate-400">
-                  {((cap.letterSpacing ?? 0) * 100).toFixed(0)}%
+                  {((cap.letterSpacing ?? 0.04) * 100).toFixed(0)}%
                 </span>
               </div>
               <input
                 type="range"
-                min="-0.04"
-                max="0.08"
+                min="-0.02"
+                max="0.14"
                 step="0.01"
-                value={cap.letterSpacing ?? 0}
+                value={cap.letterSpacing ?? 0.04}
                 onChange={(e) =>
                   updateActiveCap({ letterSpacing: parseFloat(e.target.value) })
                 }
@@ -319,6 +324,11 @@ export const InscriptionControls: React.FC = () => {
                 );
               })}
             </div>
+            {cap.subtext && (
+              <p className="text-[10px] text-amber-400/90 leading-tight">
+                💡 <strong>Clarity Tip:</strong> Subtext on 10–12mm caps prints with maximum legibility using a 0.2mm nozzle.
+              </p>
+            )}
           </div>
 
           {/* Symbol Scale Slider */}

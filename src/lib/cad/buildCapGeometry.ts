@@ -57,28 +57,17 @@ export async function getInlayShapes(
   const Ro = OD / 2;
   const C = 0.25; // 0.25mm top outer chamfer
 
-  // Safe inner diameter on top face
+  // Safe usable diameter on top face (allowing 0.20mm buffer from outer chamfer or accent ring)
   const maxSafeDiameter = hasAccentRing
-    ? Math.max(2.0, (Ro - C - 0.35 - accentRingThickness - 0.4) * 2)
-    : Math.max(3.0, (Ro - C - 0.4) * 2);
+    ? Math.max(2.0, (Ro - C - 0.20 - accentRingThickness - 0.20) * 2)
+    : Math.max(3.0, (Ro - C - 0.20) * 2);
 
   let inscriptionShapes: THREE.Shape[] = [];
 
   if (config.inscriptionMode === "text") {
-    const charLen = Math.max(1, (config.text || "").trim().length);
-    let targetWidth = maxSafeDiameter * 0.85;
-    let targetHeight = maxSafeDiameter * 0.75;
-
-    if (charLen === 1) {
-      targetWidth = maxSafeDiameter * 0.7;
-      targetHeight = maxSafeDiameter * 0.7;
-    } else if (charLen === 2) {
-      targetWidth = maxSafeDiameter * 0.82;
-      targetHeight = maxSafeDiameter * 0.72;
-    } else if (charLen >= 4) {
-      targetWidth = maxSafeDiameter * 0.92;
-      targetHeight = maxSafeDiameter * 0.65;
-    }
+    // Maximize available space: allow width and height to expand to the full circular safe boundary
+    const targetWidth = maxSafeDiameter * 0.96;
+    const targetHeight = maxSafeDiameter * 0.88;
 
     inscriptionShapes = await generateTextShapes(
       config.text,
@@ -87,31 +76,33 @@ export async function getInlayShapes(
       targetHeight,
       config.letterSpacing,
       config.fontScale,
-      0
+      0,
+      maxSafeDiameter
     );
   } else {
     const cleanSubtext = (config.subtext || "").trim().toUpperCase();
     if (cleanSubtext.length > 0) {
       const iconShapes = generateIconShapes(
         config.symbolId,
-        maxSafeDiameter * 0.5,
+        maxSafeDiameter * 0.58,
         config.symbolScale,
-        maxSafeDiameter * 0.14
+        maxSafeDiameter * 0.16
       );
       const subtextShapes = await generateTextShapes(
         cleanSubtext,
         config.fontFamily,
-        maxSafeDiameter * 0.64,
-        maxSafeDiameter * 0.19,
+        maxSafeDiameter * 0.76,
+        maxSafeDiameter * 0.24,
         config.letterSpacing,
         1.0,
-        -maxSafeDiameter * 0.25
+        -maxSafeDiameter * 0.24,
+        maxSafeDiameter
       );
       inscriptionShapes = [...iconShapes, ...subtextShapes];
     } else {
       inscriptionShapes = generateIconShapes(
         config.symbolId,
-        maxSafeDiameter * 0.72,
+        maxSafeDiameter * 0.84,
         config.symbolScale,
         0
       );
@@ -122,7 +113,7 @@ export async function getInlayShapes(
 
   // Optional concentric outer accent ring
   if (hasAccentRing) {
-    const ringOutRadius = Ro - C - 0.3;
+    const ringOutRadius = Ro - C - 0.20;
     const ringInRadius = Math.max(0.5, ringOutRadius - accentRingThickness);
 
     const ringShape = new THREE.Shape();

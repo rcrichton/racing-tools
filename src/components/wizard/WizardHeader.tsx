@@ -10,11 +10,14 @@ import {
   Printer,
   CheckCircle,
   ChevronRight,
+  Heart,
 } from "lucide-react";
+import { SupportModal } from "@/components/support/SupportModal";
 
 export const WizardHeader: React.FC = () => {
   const { wizardStep, setWizardStep, baselineWheel, caps } = useCapStore();
   const [showGuide, setShowGuide] = useState(false);
+  const [showSupport, setShowSupport] = useState(false);
 
   const currentPreset =
     WHEEL_PRESETS.find((p) => p.id === baselineWheel.presetId) ||
@@ -115,8 +118,17 @@ export const WizardHeader: React.FC = () => {
           })}
         </nav>
 
-        {/* Right Action: Slicer Guide */}
-        <div className="flex items-center justify-end">
+        {/* Right Action: Tip / Support & Slicer Guide */}
+        <div className="flex items-center justify-end gap-2">
+          <button
+            onClick={() => setShowSupport(true)}
+            aria-label="Support the project with a tip"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-slate-300 hover:text-white text-xs transition group"
+          >
+            <Heart className="w-3.5 h-3.5 text-rose-400 group-hover:scale-110 transition-transform fill-rose-400/20" />
+            <span className="font-medium">Tip</span>
+          </button>
+
           <button
             onClick={() => setShowGuide(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-slate-300 hover:text-white text-xs transition"
@@ -126,6 +138,13 @@ export const WizardHeader: React.FC = () => {
           </button>
         </div>
       </header>
+
+      {/* Voluntary Support Modal */}
+      <SupportModal
+        isOpen={showSupport}
+        onClose={() => setShowSupport(false)}
+        source="header"
+      />
 
       {/* Print Guide Modal */}
       {showGuide && (
@@ -147,33 +166,81 @@ export const WizardHeader: React.FC = () => {
             </div>
 
             <div className="flex flex-col gap-3.5 mt-4 text-slate-300">
-              <div className="p-3.5 rounded-xl bg-orange-500/10 border border-orange-500/25">
+              {/* Alert: Micro-Text on Small Caps */}
+              <div className="p-3.5 rounded-xl bg-orange-500/10 border border-orange-500/30 text-xs">
                 <span className="font-semibold text-orange-300 block mb-1">
-                  Single-File .3MF Export (Bambu Studio / Orca / PrusaSlicer)
+                  Why Text Blurs on 10–12mm Caps
                 </span>
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  Exporting as <strong>.3MF</strong> bundles all caps, body shells, inlays, and colors into a single file. Open it directly in your slicer with all objects pre-aligned.
+                <p className="text-slate-300 leading-relaxed">
+                  Button caps are tiny (~10mm diameter). Standard 0.4mm nozzles extrude beads of 0.42–0.50mm, which can easily bridge across tiny letter gaps. Follow the critical slicer settings below to get crisp, readable text.
                 </p>
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-start gap-2.5 bg-[#090A0F] p-3 rounded-xl border border-white/[0.06]">
-                  <CheckCircle className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <strong className="text-white">Print Face-Down on Textured PEI</strong>
-                    <p className="text-slate-400 mt-0.5 leading-relaxed">
-                      Printing face-down puts the dual-color inlay on layers 1–2 against the build plate for a factory-molded matte surface and zero supports.
-                    </p>
-                  </div>
-                </div>
+              {/* Slicer Settings Table */}
+              <div className="flex flex-col gap-2">
+                <span className="font-semibold text-white uppercase tracking-wider text-[11px]">
+                  Critical Slicer Settings (Bambu Studio / OrcaSlicer / PrusaSlicer)
+                </span>
 
-                <div className="flex items-start gap-2.5 bg-[#090A0F] p-3 rounded-xl border border-white/[0.06]">
-                  <CheckCircle className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <strong className="text-white">0.20mm Layer Height + Arachne Walls</strong>
-                    <p className="text-slate-400 mt-0.5 leading-relaxed">
-                      A 0.40mm inlay depth prints in 2 layers at 0.20mm height. Enable the <strong>Arachne</strong> wall generator and slow the first layer to 25 mm/s for sharp typography and symbols.
-                    </p>
+                <div className="space-y-2">
+                  <div className="flex items-start gap-2.5 bg-[#090A0F] p-3 rounded-xl border border-white/[0.06]">
+                    <CheckCircle className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <strong className="text-white">1. Elephant Foot Compensation = 0.00 mm</strong>
+                      <p className="text-slate-400 mt-0.5 leading-relaxed">
+                        <em>Quality → Advanced → Elephant foot compensation.</em> The default (0.15mm) shrinks the text perimeters inward, destroying tiny letters. Set this to <strong>0.00 mm</strong> for multi-material face-down prints.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2.5 bg-[#090A0F] p-3 rounded-xl border border-white/[0.06]">
+                    <CheckCircle className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <strong className="text-white">2. Initial Layer Line Width = 0.35 – 0.38 mm (0.4 Nozzle)</strong>
+                      <p className="text-slate-400 mt-0.5 leading-relaxed">
+                        <em>Quality → Line Width → Initial layer.</em> Slicers default this to <strong>0.50 mm</strong>, which turns 2mm letters into blobs. Reduce to <strong>0.36 mm</strong>. <em>(Note: Do NOT set to 0.20 mm on a 0.4 nozzle—it causes severe nozzle tearing and under-extrusion.)</em>
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2.5 bg-[#090A0F] p-3 rounded-xl border border-white/[0.06]">
+                    <CheckCircle className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <strong className="text-white">3. Print Inlay/Text FIRST (Filament Sequence)</strong>
+                      <p className="text-slate-400 mt-0.5 leading-relaxed">
+                        <em>Print Options → First layer filament sequence.</em> Ensure the contrasting text color is printed <strong>before</strong> the cap body so the dark body doesn&apos;t squish into the text pocket.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2.5 bg-[#090A0F] p-3 rounded-xl border border-white/[0.06]">
+                    <CheckCircle className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <strong className="text-white">4. Slow Down First Layer to 15–20 mm/s</strong>
+                      <p className="text-slate-400 mt-0.5 leading-relaxed">
+                        <em>Speed → First layer speed.</em> Set initial layer walls and infill to <strong>15–20 mm/s</strong>. Tiny sharp corners need slow speeds to adhere without dragging.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2.5 bg-[#090A0F] p-3 rounded-xl border border-white/[0.06]">
+                    <CheckCircle className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <strong className="text-white">5. Smooth Plate vs Textured PEI</strong>
+                      <p className="text-slate-400 mt-0.5 leading-relaxed">
+                        Textured PEI powder bumps (~0.15mm) scatter light and distort micro-letters. A <strong>Smooth PEI</strong> or <strong>High-Temp Plate</strong> produces injection-molded, razor-sharp text.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2.5 bg-[#090A0F] p-3 rounded-xl border border-white/[0.06]">
+                    <CheckCircle className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <strong className="text-white">6. Nozzle Choice: 0.2mm Nozzle is the Game Changer</strong>
+                      <p className="text-slate-400 mt-0.5 leading-relaxed">
+                        If printing 4-letter words (e.g. <code>WIPR</code>, <code>OVRD</code>) or icons with subtext, switching to a <strong>0.2mm nozzle</strong> provides 400% higher detail resolution and perfect legibility. On a 0.4mm nozzle, stick to <strong>1–3 characters</strong> (e.g. <code>TC</code>, <code>ABS</code>, <code>PIT</code>).
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -184,7 +251,7 @@ export const WizardHeader: React.FC = () => {
                 onClick={() => setShowGuide(false)}
                 className="px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-semibold"
               >
-                Close
+                Got It
               </button>
             </div>
           </div>

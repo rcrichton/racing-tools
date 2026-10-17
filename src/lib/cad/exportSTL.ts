@@ -172,16 +172,18 @@ SLICER INSTRUCTIONS (Bambu Studio / OrcaSlicer / PrusaSlicer):
    - Part 1 (Body) -> Filament 1 (e.g., Matte Black or Wheel Accent Color)
    - Part 2 (Inlay) -> Filament 2 (e.g., Papaya Orange, Neon Yellow, Acid Green)
 
-PRINT SETTINGS:
-- Print Orientation: ${orientation === "faceDown" ? "FACE-DOWN (Recommended: Inlay prints on layer 1 & 2 directly on textured PEI bed)" : "BASE-DOWN"}
-- Build Plate: Textured PEI Sheet (provides factory-grade finish on button face)
-- Layer Height: 0.20mm (Inlay depth 0.40mm = exactly 2 initial layers)
-- First Layer Height: 0.20mm
-- Wall Generator: Arachne (recommended for fine font outlines)
+PRINT SETTINGS & SLICER TUNING (CRITICAL FOR SHARP TEXT):
+- Print Orientation: ${orientation === "faceDown" ? "FACE-DOWN (Inlay prints on layer 1 & 2 directly on bed)" : "BASE-DOWN"}
+- Build Plate: Smooth PEI / High-Temp Plate recommended for razor-sharp text (Textured PEI scatters micro-letters)
+- Elephant Foot Compensation: 0.00mm (MANDATORY: Bambu/Orca default 0.15mm distorts tiny text)
+- Initial Layer Line Width: 0.36mm (MANDATORY: Slicers default to 0.50mm which blurs small text; do NOT use 0.20mm on a 0.4 nozzle)
+- First Layer Filament Sequence: Inlay / Text Color FIRST, Cap Body SECOND
+- First Layer Speed: 15–20 mm/s (Slow down for micro-text corner adhesion)
+- Layer Height: 0.20mm
+- Wall Generator: Arachne
 - Walls/Perimeters: 3
-- Top/Bottom Layers: 4
 - Infill: 100% Solid
-- Brim: None needed for textured PEI
+- Nozzle Recommendation: 0.2mm nozzle for 4+ letters or icons with subtext; 0.4mm nozzle for 1-3 characters (e.g. TC, ABS, PIT)
 
 Happy Racing!
 `;
