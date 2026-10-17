@@ -7,6 +7,7 @@ import { WizardHeader } from "@/components/wizard/WizardHeader";
 import { Step1WheelFitment } from "@/components/wizard/Step1WheelFitment";
 import { Step2DesignCaps } from "@/components/wizard/Step2DesignCaps";
 import { Step3ReviewExport } from "@/components/wizard/Step3ReviewExport";
+import { SUPPORT_CONFIG } from "@/config/support";
 import { SupportModal } from "@/components/support/SupportModal";
 import { Heart, ArrowLeft, ExternalLink } from "lucide-react";
 
@@ -43,18 +44,20 @@ export default function SimCapsPage() {
             rel="noopener noreferrer"
             className="text-slate-400 hover:text-orange-400 transition flex items-center gap-1"
           >
-            <span>Perfect Apex Telemetry</span>
+            <span>Perfect Apex</span>
             <ExternalLink className="w-3 h-3" />
           </a>
         </div>
 
-        <button
-          onClick={() => setShowSupport(true)}
-          className="text-slate-400 hover:text-white transition flex items-center gap-1.5 hover:underline"
-        >
-          <Heart className="w-3.5 h-3.5 text-rose-400 fill-rose-400/20" />
-          <span>Support via Wise</span>
-        </button>
+        {SUPPORT_CONFIG.enabled && (
+          <button
+            onClick={() => setShowSupport(true)}
+            className="text-slate-400 hover:text-white transition flex items-center gap-1.5 hover:underline"
+          >
+            <Heart className="w-3.5 h-3.5 text-rose-400 fill-rose-400/20" />
+            <span>Support via Wise</span>
+          </button>
+        )}
       </footer>
 
       {/* Voluntary Support Modal */}

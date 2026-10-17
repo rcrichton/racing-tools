@@ -13,6 +13,7 @@ import {
   ChevronRight,
   Heart,
 } from "lucide-react";
+import { SUPPORT_CONFIG } from "@/config/support";
 import { SupportModal } from "@/components/support/SupportModal";
 
 export const WizardHeader: React.FC = () => {
@@ -127,14 +128,16 @@ export const WizardHeader: React.FC = () => {
 
         {/* Right Action: Tip / Support & Slicer Guide */}
         <div className="flex items-center justify-end gap-2">
-          <button
-            onClick={() => setShowSupport(true)}
-            aria-label="Support the project with a tip"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-slate-300 hover:text-white text-xs transition group"
-          >
-            <Heart className="w-3.5 h-3.5 text-rose-400 group-hover:scale-110 transition-transform fill-rose-400/20" />
-            <span className="font-medium">Tip</span>
-          </button>
+          {SUPPORT_CONFIG.enabled && (
+            <button
+              onClick={() => setShowSupport(true)}
+              aria-label="Support the project with a tip"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-slate-300 hover:text-white text-xs transition group"
+            >
+              <Heart className="w-3.5 h-3.5 text-rose-400 group-hover:scale-110 transition-transform fill-rose-400/20" />
+              <span className="font-medium">Tip</span>
+            </button>
+          )}
 
           <button
             onClick={() => setShowGuide(true)}

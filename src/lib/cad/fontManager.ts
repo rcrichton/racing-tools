@@ -353,14 +353,48 @@ export async function generateTextShapes(
   const centerX = rawW / 2;
   const centerY = (minRawY + maxRawY) / 2;
 
-  // Base horizontal & vertical scale to maximize space
-  let scaleX = Math.min(maxWidth / rawW, maxHeight / rawH);
-  // Allow vertical aspect boost (up to 1.32x) so 3-4 letter labels fill vertical circle space
-  const aspectBoost = cleanText.length >= 4 ? 1.34 : cleanText.length === 3 ? 1.28 : 1.12;
-  let scaleY = Math.min(maxHeight / rawH, scaleX * aspectBoost);
+  const isSubtext = targetYOffset !== 0;
+  const len = cleanText.length;
+
+  // Character-count aware bounds so 1-letter ("N") and 2-letter ("PL") labels
+  // sit comfortably inside the cap face instead of stretching to the rim
+  const effectiveMaxW = isSubtext
+    ? maxWidth
+    : maxSafeDiameter
+    ? len === 1
+      ? maxSafeDiameter * 0.56
+      : len === 2
+      ? maxSafeDiameter * 0.74
+      : len === 3
+      ? maxSafeDiameter * 0.84
+      : maxSafeDiameter * 0.88
+    : maxWidth;
+
+  const effectiveMaxH = isSubtext
+    ? maxHeight
+    : maxSafeDiameter
+    ? len === 1
+      ? maxSafeDiameter * 0.54
+      : len === 2
+      ? maxSafeDiameter * 0.50
+      : len === 3
+      ? maxSafeDiameter * 0.48
+      : maxSafeDiameter * 0.42
+    : maxHeight;
+
+  let scaleX = Math.min(effectiveMaxW / rawW, effectiveMaxH / rawH);
+  const aspectBoost = isSubtext
+    ? 1.24
+    : len >= 4
+    ? 1.28
+    : len === 3
+    ? 1.22
+    : 1.0;
+  let scaleY = Math.min(effectiveMaxH / rawH, scaleX * aspectBoost);
 
   if (maxSafeDiameter && maxSafeDiameter > 0) {
-    const maxR = (maxSafeDiameter / 2) * 0.97;
+    const circleRatio = isSubtext ? 0.90 : len <= 2 ? 0.80 : 0.88;
+    const maxR = (maxSafeDiameter / 2) * circleRatio;
     const cornerX = (rawW * scaleX) / 2;
     const cornerY = Math.abs(targetYOffset) + (rawH * scaleY) / 2;
     const cornerDist = Math.hypot(cornerX, cornerY);
@@ -374,8 +408,21 @@ export async function generateTextShapes(
   scaleX *= userFontScale || 1.0;
   scaleY *= userFontScale || 1.0;
 
+  // Hard physical boundary clamp so even userFontScale > 1.0 never overflows the cap edge
+  if (maxSafeDiameter && maxSafeDiameter > 0) {
+    const hardMaxR = (maxSafeDiameter / 2) * 0.94;
+    const finalCornerX = (rawW * scaleX) / 2;
+    const finalCornerY = Math.abs(targetYOffset) + (rawH * scaleY) / 2;
+    const finalDist = Math.hypot(finalCornerX, finalCornerY);
+    if (finalDist > hardMaxR) {
+      const f = hardMaxR / finalDist;
+      scaleX *= f;
+      scaleY *= f;
+    }
+  }
+
   // Outward stroke boost (+0.032mm per side = +0.064mm thicker strokes)
-  const boldOffsetMm = targetYOffset !== 0 ? 0.025 : 0.032;
+  const boldOffsetMm = isSubtext ? 0.025 : 0.032;
 
   const allShapes: THREE.Shape[] = [];
   let cursorX = 0;

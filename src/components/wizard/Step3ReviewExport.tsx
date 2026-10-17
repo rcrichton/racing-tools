@@ -244,9 +244,15 @@ export const Step3ReviewExport: React.FC = () => {
                   text={c.text}
                   subtext={c.subtext}
                   symbolId={c.symbolId}
+                  fontFamily={c.fontFamily}
+                  fontScale={c.fontScale}
+                  letterSpacing={c.letterSpacing}
+                  symbolScale={c.symbolScale}
                   bodyColor={c.bodyColor}
                   inlayColor={c.inlayColor}
                   hasAccentRing={c.hasAccentRing}
+                  accentRingThickness={c.accentRingThickness}
+                  outerDiameter={c.outerDiameter}
                   size="lg"
                 />
               </div>

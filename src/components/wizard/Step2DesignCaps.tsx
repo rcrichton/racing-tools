@@ -3,7 +3,13 @@
 import React, { useState } from "react";
 import dynamic from "next/dynamic";
 import { useCapStore } from "@/store/useCapStore";
-import { WHEEL_PRESETS } from "@/config/wheelPresets";
+import {
+  WHEEL_PRESETS,
+  SAMPLE_CAP_PRESETS,
+  GT3_STARTER_PRESET_IDS,
+  FORMULA_STARTER_PRESET_IDS,
+  CapPresetDef,
+} from "@/config/wheelPresets";
 import { InscriptionControls } from "@/components/controls/InscriptionControls";
 import { FilamentControls } from "@/components/controls/FilamentControls";
 import { ViewportControls } from "@/components/viewport/ViewportControls";
@@ -39,6 +45,23 @@ const ThreeViewport = dynamic(
   }
 );
 
+const BUNDLE_CARDS = [
+  {
+    id: "gt3" as const,
+    name: "GT3 & Endurance Bundle",
+    count: GT3_STARTER_PRESET_IDS.length,
+    subtitle: "Pit, Lights, Flash, Radio, TC±, TC Cut±, ABS±, BB±, Override, Wiper, Rain & Comms",
+    previewIds: GT3_STARTER_PRESET_IDS.slice(0, 8),
+  },
+  {
+    id: "formula" as const,
+    name: "Formula / Open-Wheel Bundle",
+    count: FORMULA_STARTER_PRESET_IDS.length,
+    subtitle: "DRS, Overtake, Neutral, Pit, Box, Brake Bias±, Diff±, EB± & Comms",
+    previewIds: FORMULA_STARTER_PRESET_IDS.slice(0, 8),
+  },
+];
+
 export const Step2DesignCaps: React.FC = () => {
   const {
     baselineWheel,
@@ -55,7 +78,7 @@ export const Step2DesignCaps: React.FC = () => {
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
     mode: "add" | "applyToCurrent";
-    initialView: "choice" | "preset";
+    initialView: "choice" | "preset" | "bundles";
   }>({
     isOpen: false,
     mode: "add",
@@ -67,7 +90,9 @@ export const Step2DesignCaps: React.FC = () => {
     WHEEL_PRESETS.find((p) => p.id === baselineWheel.presetId) ||
     WHEEL_PRESETS[0];
 
-  const handleOpenAddModal = (initialView: "choice" | "preset" = "choice") => {
+  const handleOpenAddModal = (
+    initialView: "choice" | "preset" | "bundles" = "choice"
+  ) => {
     setModalState({ isOpen: true, mode: "add", initialView });
   };
 
@@ -79,7 +104,7 @@ export const Step2DesignCaps: React.FC = () => {
     });
   };
 
-  // EMPTY STATE: Guided choice screen when no caps are in the set yet
+  // EMPTY STATE: Guided choice screen giving Preset Bundles equal prominence to Individual Presets & Custom Caps
   if (caps.length === 0) {
     return (
       <>
@@ -105,69 +130,143 @@ export const Step2DesignCaps: React.FC = () => {
             </button>
           </div>
 
-          <div className="p-6 sm:p-8 rounded-2xl bg-[#11141D] border border-white/[0.08] flex flex-col gap-6">
+          {/* Section 1: Complete Wheel Preset Bundles */}
+          <div className="p-6 rounded-2xl bg-[#11141D] border border-white/[0.08] flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Layers className="w-4 h-4 text-orange-400" />
+                <h3 className="text-sm font-bold text-white font-display uppercase tracking-wide">
+                  Load a Complete Wheel Bundle
+                </h3>
+              </div>
+              <span className="text-[11px] text-slate-400 hidden sm:inline">
+                Start with a full set and delete or edit any caps you don&apos;t need
+              </span>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Option 1: Choose Preset */}
+              {BUNDLE_CARDS.map((b) => {
+                const previews = b.previewIds
+                  .map((id) => SAMPLE_CAP_PRESETS.find((p) => p.id === id))
+                  .filter((p): p is CapPresetDef => Boolean(p));
+
+                return (
+                  <button
+                    key={b.id}
+                    onClick={() => loadStarterPack(b.id)}
+                    className="group flex flex-col justify-between p-5 rounded-xl bg-[#090A0F] border border-white/10 hover:border-orange-500 hover:bg-[#141824] transition-all text-left"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between gap-2 mb-1.5">
+                        <span className="font-bold text-white font-display text-base group-hover:text-orange-400 transition">
+                          {b.name}
+                        </span>
+                        <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-orange-500/15 text-orange-400 border border-orange-500/30 font-semibold shrink-0">
+                          {b.count} Caps
+                        </span>
+                      </div>
+                      <p className="text-slate-400 text-xs leading-relaxed">
+                        {b.subtitle}
+                      </p>
+
+                      {/* Mini Cap Badge Preview Strip */}
+                      <div className="flex items-center gap-1.5 mt-4 overflow-hidden">
+                        {previews.map((p) => (
+                          <div key={p.id} className="shrink-0">
+                            <CapFaceBadge
+                              inscriptionMode={p.inscriptionMode}
+                              text={p.text}
+                              subtext={p.subtext}
+                              symbolId={p.symbolId}
+                              fontFamily={p.fontFamily}
+                              fontScale={p.fontScale}
+                              letterSpacing={p.letterSpacing}
+                              symbolScale={p.symbolScale}
+                              bodyColor={p.bodyColor}
+                              inlayColor={p.inlayColor}
+                              hasAccentRing={p.hasAccentRing}
+                              accentRingThickness={p.accentRingThickness}
+                              outerDiameter={baselineWheel.outerDiameter}
+                              size="sm"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs">
+                      <span className="text-slate-500 font-mono text-[11px]">
+                        +{b.count - previews.length} more included
+                      </span>
+                      <span className="flex items-center gap-1.5 text-orange-400 font-semibold">
+                        <span>Load Bundle</span>
+                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Section 2: Build Cap-by-Cap (Individual Presets or Custom) */}
+          <div className="p-6 rounded-2xl bg-[#11141D] border border-white/[0.08] flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-amber-400" />
+                <h3 className="text-sm font-bold text-white font-display uppercase tracking-wide">
+                  Or Build Cap-by-Cap
+                </h3>
+              </div>
+              <span className="text-[11px] text-slate-400 hidden sm:inline">
+                Pick individual button presets or design from scratch
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Individual Presets */}
               <button
                 onClick={() => handleOpenAddModal("preset")}
-                className="group flex flex-col p-6 rounded-xl bg-[#090A0F] border border-white/10 hover:border-orange-500 hover:bg-[#141824] transition-all text-left"
+                className="group flex flex-col justify-between p-5 rounded-xl bg-[#090A0F] border border-white/10 hover:border-amber-500 hover:bg-[#141824] transition-all text-left"
               >
-                <div className="w-10 h-10 rounded-xl bg-orange-500/15 border border-orange-500/30 flex items-center justify-center text-orange-400 mb-3">
-                  <Sparkles className="w-5 h-5" />
+                <div>
+                  <div className="w-9 h-9 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 mb-3">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <span className="font-bold text-white font-display text-sm group-hover:text-amber-400 transition block">
+                    Pick Individual Button Presets
+                  </span>
+                  <p className="text-slate-400 text-xs mt-1 leading-relaxed">
+                    Browse 40+ individual GT3/LMP, Formula, Symbol + Subtext, Comms, and Adjustment templates.
+                  </p>
                 </div>
-                <span className="font-bold text-white font-display text-base group-hover:text-orange-400 transition">
-                  Choose a Racing Preset
-                </span>
-                <p className="text-slate-400 text-xs mt-1.5 leading-relaxed">
-                  Browse authentic GT3/LMP, Formula, and dashboard symbol + subtext presets.
-                </p>
-                <div className="mt-4 flex items-center gap-1.5 text-orange-400 font-semibold text-xs">
-                  <span>Browse Presets</span>
+                <div className="mt-4 flex items-center gap-1.5 text-amber-400 font-semibold text-xs">
+                  <span>Browse Individual Caps</span>
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                 </div>
               </button>
 
-              {/* Option 2: Custom Cap */}
+              {/* Custom Cap */}
               <button
                 onClick={() => addCapFromScratch("Custom Cap", "PIT")}
-                className="group flex flex-col p-6 rounded-xl bg-[#090A0F] border border-white/10 hover:border-orange-500 hover:bg-[#141824] transition-all text-left"
+                className="group flex flex-col justify-between p-5 rounded-xl bg-[#090A0F] border border-white/10 hover:border-cyan-500 hover:bg-[#141824] transition-all text-left"
               >
-                <div className="w-10 h-10 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-3">
-                  <PenTool className="w-5 h-5" />
+                <div>
+                  <div className="w-9 h-9 rounded-lg bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-3">
+                    <PenTool className="w-4 h-4" />
+                  </div>
+                  <span className="font-bold text-white font-display text-sm group-hover:text-cyan-400 transition block">
+                    Create Custom Cap
+                  </span>
+                  <p className="text-slate-400 text-xs mt-1 leading-relaxed">
+                    Open a blank cap directly in the 3D studio and customize text, symbols, subtext, and colors.
+                  </p>
                 </div>
-                <span className="font-bold text-white font-display text-base group-hover:text-cyan-400 transition">
-                  Create Custom Cap
-                </span>
-                <p className="text-slate-400 text-xs mt-1.5 leading-relaxed">
-                  Start from scratch in the 3D studio and customize text, symbols, subtext, and colors.
-                </p>
                 <div className="mt-4 flex items-center gap-1.5 text-cyan-400 font-semibold text-xs">
                   <span>Open 3D Studio</span>
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                 </div>
               </button>
-            </div>
-
-            {/* Starter Packs */}
-            <div className="pt-5 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-              <div className="flex items-center gap-2 text-slate-400">
-                <Layers className="w-4 h-4 text-orange-400" />
-                <span>Or load a complete wheel set:</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => loadStarterPack("gt3")}
-                  className="px-3.5 py-2 rounded-lg bg-[#090A0F] hover:bg-white/[0.06] border border-white/10 text-slate-200 hover:text-white transition font-medium"
-                >
-                  GT3 / LMP Set (20 Caps)
-                </button>
-                <button
-                  onClick={() => loadStarterPack("formula")}
-                  className="px-3.5 py-2 rounded-lg bg-[#090A0F] hover:bg-white/[0.06] border border-white/10 text-slate-200 hover:text-white transition font-medium"
-                >
-                  Formula Set (18 Caps)
-                </button>
-              </div>
             </div>
           </div>
 
@@ -261,7 +360,7 @@ export const Step2DesignCaps: React.FC = () => {
 
         {/* Bottom Cap Tray */}
         <div className="flex flex-col gap-2.5 p-3.5 rounded-2xl bg-[#11141D] border border-white/[0.07]">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-white">
                 Your Cap Set ({caps.length})
@@ -271,13 +370,23 @@ export const Step2DesignCaps: React.FC = () => {
               </span>
             </div>
 
-            <button
-              onClick={() => handleOpenAddModal("choice")}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-semibold text-xs shadow-sm transition"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add Cap</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handleOpenAddModal("bundles")}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#090A0F] hover:bg-white/[0.06] border border-white/10 text-slate-300 hover:text-white font-medium text-xs transition"
+              >
+                <Layers className="w-3.5 h-3.5 text-orange-400" />
+                <span>Preset Bundles</span>
+              </button>
+
+              <button
+                onClick={() => handleOpenAddModal("choice")}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-semibold text-xs shadow-sm transition"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add Cap</span>
+              </button>
+            </div>
           </div>
 
           <div className="flex items-center gap-2 overflow-x-auto pb-1">
@@ -310,9 +419,15 @@ export const Step2DesignCaps: React.FC = () => {
                       text={c.text}
                       subtext={c.subtext}
                       symbolId={c.symbolId}
+                      fontFamily={c.fontFamily}
+                      fontScale={c.fontScale}
+                      letterSpacing={c.letterSpacing}
+                      symbolScale={c.symbolScale}
                       bodyColor={c.bodyColor}
                       inlayColor={c.inlayColor}
                       hasAccentRing={c.hasAccentRing}
+                      accentRingThickness={c.accentRingThickness}
+                      outerDiameter={c.outerDiameter}
                       size="sm"
                     />
                   </div>

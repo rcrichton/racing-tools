@@ -397,7 +397,7 @@ export const useCapStore = create<CapStudioState>()(
         set({ printOrientation: orientation }),
     }),
     {
-      name: "sim-cap-studio-storage-v6",
+      name: "sim-cap-studio-storage-v7",
       partialize: (state) => ({
         caps: state.caps,
         activeCapId: state.activeCapId,

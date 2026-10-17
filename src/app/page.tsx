@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { SUPPORT_CONFIG } from "@/config/support";
 import { SupportModal } from "@/components/support/SupportModal";
 import {
   Compass,
@@ -29,13 +30,15 @@ export default function LandingPage() {
             </span>
           </div>
 
-          <button
-            onClick={() => setShowSupport(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.07] text-slate-300 hover:text-white text-xs transition group"
-          >
-            <Heart className="w-3.5 h-3.5 text-rose-400 fill-rose-400/20 group-hover:scale-110 transition-transform" />
-            <span>Tip</span>
-          </button>
+          {SUPPORT_CONFIG.enabled && (
+            <button
+              onClick={() => setShowSupport(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.07] text-slate-300 hover:text-white text-xs transition group"
+            >
+              <Heart className="w-3.5 h-3.5 text-rose-400 fill-rose-400/20 group-hover:scale-110 transition-transform" />
+              <span>Tip</span>
+            </button>
+          )}
         </div>
       </header>
 
@@ -106,11 +109,11 @@ export default function LandingPage() {
                     Perfect Apex
                   </h3>
                   <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
-                    Telemetry SaaS
+                    Real & Sim Racing
                   </span>
                 </div>
                 <p className="text-xs text-slate-400 leading-relaxed max-w-xl">
-                  Sim racing telemetry analysis platform to compare laps, braking and throttle traces, and extract lap time.
+                  Your personal race coach, telemetry, and data analysis platform for real and sim racing. Compare laps, analyze throttle and braking inputs, and find lap time.
                 </p>
               </div>
             </div>
@@ -136,12 +139,14 @@ export default function LandingPage() {
             >
               Perfect Apex
             </a>
-            <button
-              onClick={() => setShowSupport(true)}
-              className="hover:text-slate-300 transition"
-            >
-              Support
-            </button>
+            {SUPPORT_CONFIG.enabled && (
+              <button
+                onClick={() => setShowSupport(true)}
+                className="hover:text-slate-300 transition"
+              >
+                Support
+              </button>
+            )}
           </div>
         </div>
       </footer>

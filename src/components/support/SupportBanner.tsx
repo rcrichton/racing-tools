@@ -55,7 +55,7 @@ export const SupportBanner: React.FC<SupportBannerProps> = ({
     window.open(SUPPORT_CONFIG.wiseUrl, "_blank", "noopener,noreferrer");
   };
 
-  if (isStoredDismissed || isDismissedLocally) return null;
+  if (!SUPPORT_CONFIG.enabled || isStoredDismissed || isDismissedLocally) return null;
 
   return (
     <div

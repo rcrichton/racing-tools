@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
-import { getIconSvgPath } from "@/lib/cad/iconManager";
+import React, { useEffect, useState } from "react";
+import { getInlayShapes } from "@/lib/cad/buildCapGeometry";
+import { ButtonCapConfig } from "@/config/wheelPresets";
 
 interface CapFaceBadgeProps {
   inscriptionMode: "text" | "symbol";
@@ -11,21 +12,143 @@ interface CapFaceBadgeProps {
   bodyColor: string;
   inlayColor: string;
   hasAccentRing: boolean;
+  accentRingThickness?: number;
+  fontFamily?: "JetBrains Mono" | "Chakra Petch" | "Orbitron";
+  fontScale?: number;
+  letterSpacing?: number;
+  symbolScale?: number;
+  outerDiameter?: number;
   size?: "sm" | "md" | "lg";
 }
+
+// In-memory SVG path cache keyed by cap geometry signature
+const svgPathCache = new Map<string, string>();
 
 export function CapFaceBadge({
   inscriptionMode,
   text,
-  subtext,
+  subtext = "",
   symbolId,
   bodyColor,
   inlayColor,
   hasAccentRing,
+  accentRingThickness = 0.55,
+  fontFamily = "JetBrains Mono",
+  fontScale = 1.0,
+  letterSpacing = 0.04,
+  symbolScale = 1.0,
+  outerDiameter = 11.4,
   size = "md",
 }: CapFaceBadgeProps) {
-  const cleanSub = (subtext || "").trim().toUpperCase();
-  const cleanText = (text || "").trim().toUpperCase();
+  const cacheKey = [
+    outerDiameter,
+    inscriptionMode,
+    text,
+    subtext,
+    symbolId,
+    hasAccentRing,
+    accentRingThickness,
+    fontFamily,
+    fontScale,
+    letterSpacing,
+    symbolScale,
+  ].join("|");
+
+  const [svgPath, setSvgPath] = useState<string>(
+    () => svgPathCache.get(cacheKey) || ""
+  );
+
+  useEffect(() => {
+    let active = true;
+    const cached = svgPathCache.get(cacheKey);
+    if (cached) {
+      return;
+    }
+
+    const mockConfig: ButtonCapConfig = {
+      id: "badge",
+      name: "Badge",
+      presetId: "fanatec",
+      outerDiameter,
+      baseInnerDiameter: 9.7,
+      toleranceModifier: 0,
+      capHeight: 4.2,
+      topWallThickness: 1.0,
+      inlayDepth: 0.5,
+      inscriptionMode,
+      text,
+      subtext,
+      fontFamily,
+      fontScale,
+      letterSpacing,
+      symbolId,
+      symbolScale,
+      hasAccentRing,
+      accentRingThickness,
+      reliefMode: "flush",
+      embossHeight: 0.4,
+      bodyColor,
+      inlayColor,
+    };
+
+    getInlayShapes(mockConfig)
+      .then((shapes) => {
+        if (!active) return;
+        const parts: string[] = [];
+        for (const shape of shapes) {
+          const pts = shape.getPoints(16);
+          if (pts.length > 0) {
+            parts.push(
+              "M" +
+                pts
+                  .map((p) => `${p.x.toFixed(2)},${(-p.y).toFixed(2)}`)
+                  .join("L") +
+                "Z"
+            );
+          }
+          for (const hole of shape.holes) {
+            const hPts = hole.getPoints(16);
+            if (hPts.length > 0) {
+              parts.push(
+                "M" +
+                  hPts
+                    .map((p) => `${p.x.toFixed(2)},${(-p.y).toFixed(2)}`)
+                    .join("L") +
+                  "Z"
+              );
+            }
+          }
+        }
+        const d = parts.join(" ");
+        svgPathCache.set(cacheKey, d);
+        setSvgPath(d);
+      })
+      .catch(() => {
+        // Ignore transient font load error
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [
+    cacheKey,
+    outerDiameter,
+    inscriptionMode,
+    text,
+    subtext,
+    fontFamily,
+    fontScale,
+    letterSpacing,
+    symbolId,
+    symbolScale,
+    hasAccentRing,
+    accentRingThickness,
+    bodyColor,
+    inlayColor,
+  ]);
+
+  const effectivePath = svgPathCache.get(cacheKey) || svgPath;
+  const r = outerDiameter / 2;
 
   const sizeClasses = {
     sm: "w-9 h-9",
@@ -33,61 +156,20 @@ export function CapFaceBadge({
     lg: "w-12 h-12",
   }[size];
 
-  const textFontClasses = {
-    sm: cleanText.length >= 4 ? "text-[8px]" : cleanText.length === 3 ? "text-[9px]" : "text-[11px]",
-    md: cleanText.length >= 4 ? "text-[9px]" : cleanText.length === 3 ? "text-[10px]" : "text-xs",
-    lg: cleanText.length >= 4 ? "text-[10px]" : cleanText.length === 3 ? "text-[11px]" : "text-sm",
-  }[size];
-
   return (
     <div
-      className={`${sizeClasses} rounded-full flex flex-col items-center justify-center shrink-0 relative shadow-inner border border-white/15 select-none overflow-hidden`}
+      className={`${sizeClasses} rounded-full flex items-center justify-center shrink-0 relative shadow-inner border border-white/15 select-none overflow-hidden`}
       style={{ backgroundColor: bodyColor }}
     >
-      {hasAccentRing && (
-        <span
-          className="absolute inset-[2.5px] rounded-full border-[1.75px] pointer-events-none"
-          style={{ borderColor: inlayColor }}
-        />
-      )}
-
-      {inscriptionMode === "text" ? (
-        <span
-          className={`font-display font-bold tracking-tight leading-none z-10 ${textFontClasses}`}
-          style={{ color: inlayColor }}
-        >
-          {cleanText}
-        </span>
-      ) : cleanSub ? (
-        <div
-          className="flex flex-col items-center justify-center z-10 leading-none"
-          style={{ color: inlayColor }}
-        >
-          <svg
-            viewBox="0 0 100 100"
-            className={size === "sm" ? "w-3.5 h-3.5 -mt-0.5" : "w-4 h-4 -mt-0.5"}
-          >
-            <path d={getIconSvgPath(symbolId)} fill="currentColor" fillRule="evenodd" />
-          </svg>
-          <span
-            className={`font-display font-bold tracking-tighter leading-none mt-[1px] ${
-              size === "sm" ? "text-[5.5px]" : "text-[6.5px]"
-            }`}
-          >
-            {cleanSub.slice(0, 4)}
-          </span>
-        </div>
-      ) : (
-        <svg
-          viewBox="0 0 100 100"
-          className={`z-10 ${
-            size === "sm" ? "w-5 h-5" : size === "lg" ? "w-6 h-6" : "w-5.5 h-5.5"
-          }`}
-          style={{ color: inlayColor }}
-        >
-          <path d={getIconSvgPath(symbolId)} fill="currentColor" fillRule="evenodd" />
-        </svg>
-      )}
+      <svg
+        viewBox={`${-r} ${-r} ${outerDiameter} ${outerDiameter}`}
+        className="w-full h-full"
+      >
+        {effectivePath && (
+          <path d={effectivePath} fill={inlayColor} fillRule="evenodd" />
+        )}
+      </svg>
     </div>
   );
 }
+

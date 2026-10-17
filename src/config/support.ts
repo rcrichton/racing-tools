@@ -7,6 +7,12 @@
 
 export const SUPPORT_CONFIG = {
   /**
+   * Whether voluntary tip buttons & banners are visible in the UI.
+   * Disabled until payment link is set up.
+   */
+  enabled: false,
+
+  /**
    * The destination Wise payment link URL.
    * Can be configured via NEXT_PUBLIC_WISE_TIP_URL in .env.local / Vercel.
    */
