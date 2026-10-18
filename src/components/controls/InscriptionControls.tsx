@@ -4,7 +4,8 @@ import React from "react";
 import { useCapStore } from "@/store/useCapStore";
 import { MOTORSPORT_ICONS } from "@/config/wheelPresets";
 import { getIconSvgPath } from "@/lib/cad/iconManager";
-import { Type, Sparkles, CircleDot, Layers, X } from "lucide-react";
+import { getCapPrintabilityWarning } from "@/lib/cad/buildCapGeometry";
+import { Type, Sparkles, CircleDot, Layers, X, AlertTriangle } from "lucide-react";
 
 const QUICK_TEXT_CHIPS = [
   "PIT",
@@ -48,6 +49,7 @@ const QUICK_SUBTEXT_CHIPS = [
 export const InscriptionControls: React.FC = () => {
   const cap = useCapStore((state) => state.getActiveCap());
   const { updateActiveCap } = useCapStore();
+  const printWarning = getCapPrintabilityWarning(cap);
 
   return (
     <div className="flex flex-col gap-4 p-4 bg-[#11141D] border border-white/[0.07] rounded-xl text-xs">
@@ -342,6 +344,37 @@ export const InscriptionControls: React.FC = () => {
               }
               className="accent-orange-500 bg-slate-800 h-1.5 rounded cursor-pointer"
             />
+          </div>
+        </div>
+      )}
+
+      {/* Printability Warning Box */}
+      {printWarning.warn && (
+        <div
+          className={`flex items-start gap-2.5 p-3 rounded-xl transition-all ${
+            printWarning.level === "high"
+              ? "bg-amber-500/10 border border-amber-500/30 text-amber-200"
+              : "bg-amber-500/[0.07] border border-amber-500/20 text-slate-300"
+          }`}
+        >
+          <AlertTriangle
+            className={`w-4 h-4 mt-0.5 shrink-0 ${
+              printWarning.level === "high" ? "text-amber-400" : "text-amber-400/80"
+            }`}
+          />
+          <div className="flex flex-col gap-0.5">
+            <span
+              className={`font-semibold text-xs ${
+                printWarning.level === "high" ? "text-amber-300" : "text-amber-200"
+              }`}
+            >
+              {printWarning.level === "high"
+                ? "Small Detail Warning — Stickers Recommended"
+                : "3D Print Legibility Tip"}
+            </span>
+            <p className="text-[11px] leading-relaxed opacity-90">
+              {printWarning.reason}
+            </p>
           </div>
         </div>
       )}

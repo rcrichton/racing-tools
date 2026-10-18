@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import JSZip from "jszip";
 import { ButtonCapConfig } from "@/config/wheelPresets";
-import { buildCapGeometry } from "./buildCapGeometry";
+import { buildCapGeometry, buildBlankCapGeometry } from "./buildCapGeometry";
 import { PrintOrientation } from "@/store/useCapStore";
 import { triggerDownload } from "./exportSTL";
 
@@ -314,3 +314,206 @@ export async function exportAllInOne3MF(
 
   triggerDownload(content, "SimCapStudio_Full_Wheel_Set.3mf");
 }
+
+/**
+ * Generates and downloads a single-part, solid blank .3MF file for the active cap.
+ * Used for flat-faced caps intended for vinyl stickers or UV printing.
+ */
+export async function exportSingleBlankCap3MF(
+  config: ButtonCapConfig,
+  orientation: PrintOrientation = "faceDown"
+): Promise<void> {
+  const { bodyGeometry } = buildBlankCapGeometry(config);
+  const label =
+    config.inscriptionMode === "text"
+      ? config.text || "CAP"
+      : config.symbolId || "CAP";
+  const safeName = sanitizeFilename(`${config.presetId}_${label}`);
+
+  const zip = new JSZip();
+
+  // 1. [Content_Types].xml
+  zip.file(
+    "[Content_Types].xml",
+    `<?xml version="1.0" encoding="UTF-8"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/>
+</Types>`
+  );
+
+  // 2. _rels/.rels
+  zip.file(
+    "_rels/.rels",
+    `<?xml version="1.0" encoding="UTF-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Target="/3D/3dmodel.model" Id="rel0" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/>
+</Relationships>`
+  );
+
+  // 3. 3D/3dmodel.model
+  const bodyMeshXml = geometryTo3MFMesh(
+    bodyGeometry,
+    config.capHeight,
+    orientation
+  );
+  const bodyColor = hexTo3MFColor(config.bodyColor);
+
+  const objectsXml = `
+    <!-- Blank Cap Body -->
+    <object id="1" name="${safeName}_Blank" type="model" pid="10" pindex="0">
+      ${bodyMeshXml}
+    </object>
+  `;
+
+  const modelXml = `<?xml version="1.0" encoding="UTF-8"?>
+<model unit="millimeter" xml:lang="en-US" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02" xmlns:m="http://schemas.microsoft.com/3dmanufacturing/material/2015/02">
+  <resources>
+    <m:colorgroup id="10">
+      <m:color color="${bodyColor}"/>
+    </m:colorgroup>
+    ${objectsXml}
+  </resources>
+  <build>
+    <item objectid="1"/>
+  </build>
+</model>`;
+
+  zip.file("3D/3dmodel.model", modelXml);
+
+  const content = await zip.generateAsync({
+    type: "blob",
+    compression: "DEFLATE",
+  });
+
+  triggerDownload(content, `Cap_${safeName}_Blank.3mf`);
+}
+
+/**
+ * Generates a .3MF Blob containing all caps as flat-faced blank caps arranged on a 4-column, 20mm spacing grid.
+ */
+export async function generateBlankCaps3MFBlob(
+  caps: ButtonCapConfig[],
+  orientation: PrintOrientation = "faceDown",
+  onProgress?: (progress: number, status: string) => void
+): Promise<Blob> {
+  const zip = new JSZip();
+
+  // 1. [Content_Types].xml
+  zip.file(
+    "[Content_Types].xml",
+    `<?xml version="1.0" encoding="UTF-8"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/>
+</Types>`
+  );
+
+  // 2. _rels/.rels
+  zip.file(
+    "_rels/.rels",
+    `<?xml version="1.0" encoding="UTF-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Target="/3D/3dmodel.model" Id="rel0" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/>
+</Relationships>`
+  );
+
+  // 3. 3D/3dmodel.model
+  let objectsXml = "";
+  let colorGroupsXml = "";
+  let buildItemsXml = "";
+
+  const total = caps.length;
+  const cols = 4;
+  const spacing = 20; // 20mm spacing between cap centers
+
+  let objectIdCounter = 1;
+
+  for (let i = 0; i < total; i++) {
+    const cap = caps[i];
+    const label =
+      cap.inscriptionMode === "text"
+        ? cap.text || `Cap_${i + 1}`
+        : cap.symbolId || `Cap_${i + 1}`;
+    const safeLabel = sanitizeFilename(label);
+
+    if (onProgress) {
+      onProgress(
+        Math.round(((i + 0.5) / total) * 90),
+        `Generating 3D blank model for cap #${i + 1} (${label})...`
+      );
+    }
+
+    const { bodyGeometry } = buildBlankCapGeometry(cap);
+
+    const bodyId = objectIdCounter++;
+    const colorGroupId = 100 + i;
+    const bodyColor = hexTo3MFColor(cap.bodyColor);
+
+    colorGroupsXml += `
+    <m:colorgroup id="${colorGroupId}">
+      <m:color color="${bodyColor}"/>
+    </m:colorgroup>`;
+
+    const bodyMeshXml = geometryTo3MFMesh(
+      bodyGeometry,
+      cap.capHeight,
+      orientation
+    );
+    objectsXml += `
+    <object id="${bodyId}" name="${safeLabel}_Blank_Body" type="model" pid="${colorGroupId}" pindex="0">
+      ${bodyMeshXml}
+    </object>`;
+
+    // Grid coordinates on build plate
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    const posX = (col - (cols - 1) / 2) * spacing;
+    const posY = (row - (Math.ceil(total / cols) - 1) / 2) * spacing;
+
+    buildItemsXml += `
+    <item objectid="${bodyId}" transform="1 0 0 0 1 0 0 0 1 ${posX.toFixed(2)} ${posY.toFixed(2)} 0"/>`;
+  }
+
+  const modelXml = `<?xml version="1.0" encoding="UTF-8"?>
+<model unit="millimeter" xml:lang="en-US" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02" xmlns:m="http://schemas.microsoft.com/3dmanufacturing/material/2015/02">
+  <resources>
+    ${colorGroupsXml}
+    ${objectsXml}
+  </resources>
+  <build>
+    ${buildItemsXml}
+  </build>
+</model>`;
+
+  zip.file("3D/3dmodel.model", modelXml);
+
+  if (onProgress) {
+    onProgress(95, "Packaging blank caps .3MF file...");
+  }
+
+  const content = await zip.generateAsync({
+    type: "blob",
+    compression: "DEFLATE",
+  });
+
+  if (onProgress) {
+    onProgress(100, "Done!");
+  }
+
+  return content;
+}
+
+/**
+ * Generates and downloads a .3MF file containing all caps as flat-faced blank caps
+ * arranged on the exact same 4-column, 20mm spacing grid as exportAllInOne3MF.
+ */
+export async function exportBlankCaps3MF(
+  caps: ButtonCapConfig[],
+  orientation: PrintOrientation = "faceDown",
+  onProgress?: (progress: number, status: string) => void
+): Promise<void> {
+  const content = await generateBlankCaps3MFBlob(caps, orientation, onProgress);
+  triggerDownload(content, `SimCapStudio_${caps.length}_Blank_Caps.3mf`);
+}
+

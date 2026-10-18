@@ -180,13 +180,18 @@ export const WizardHeader: React.FC = () => {
 
             <div className="flex flex-col gap-3.5 mt-4 text-slate-300">
               {/* Alert: Micro-Text on Small Caps */}
-              <div className="p-3.5 rounded-xl bg-orange-500/10 border border-orange-500/30 text-xs">
-                <span className="font-semibold text-orange-300 block mb-1">
-                  Why Text Blurs on 10–12mm Caps
-                </span>
-                <p className="text-slate-300 leading-relaxed">
-                  Button caps are tiny (~10mm diameter). Standard 0.4mm nozzles extrude beads of 0.42–0.50mm, which can easily bridge across tiny letter gaps. Follow the critical slicer settings below to get crisp, readable text.
-                </p>
+              <div className="p-3.5 rounded-xl bg-orange-500/10 border border-orange-500/30 text-xs flex flex-col gap-2">
+                <div>
+                  <span className="font-semibold text-orange-300 block mb-1">
+                    Why Text Blurs on 10–12mm Caps
+                  </span>
+                  <p className="text-slate-300 leading-relaxed">
+                    Button caps are tiny (~10mm diameter). Standard 0.4mm nozzles extrude beads of 0.42–0.50mm, which can easily bridge across tiny letter gaps. Follow the critical slicer settings below to get crisp, readable text.
+                  </p>
+                </div>
+                <div className="pt-2 border-t border-orange-500/20 text-slate-300 leading-relaxed">
+                  <strong className="text-cyan-300">💡 Sticker &amp; UV Print Alternative:</strong> If you are using <strong className="text-white">Icons + Subtext</strong> on a standard 0.4mm nozzle, you can also export <strong className="text-white">Blank Caps + Cricut Print-Then-Cut Stickers / UV Print files</strong> in Step 3 for 100% sharp graphics without multi-color nozzle blurring.
+                </div>
               </div>
 
               {/* Slicer Settings Table */}
@@ -249,9 +254,9 @@ export const WizardHeader: React.FC = () => {
                   <div className="flex items-start gap-2.5 bg-[#090A0F] p-3 rounded-xl border border-white/[0.06]">
                     <CheckCircle className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
                     <div>
-                      <strong className="text-white">6. Nozzle Choice: 0.2mm Nozzle is the Game Changer</strong>
+                      <strong className="text-white">6. Nozzle Choice: 0.2mm Nozzle or Vinyl Stickers</strong>
                       <p className="text-slate-400 mt-0.5 leading-relaxed">
-                        If printing 4-letter words (e.g. <code>WIPR</code>, <code>OVRD</code>) or icons with subtext, switching to a <strong>0.2mm nozzle</strong> provides 400% higher detail resolution and perfect legibility. On a 0.4mm nozzle, stick to <strong>1–3 characters</strong> (e.g. <code>TC</code>, <code>ABS</code>, <code>PIT</code>).
+                        If printing 4-letter words (e.g. <code>WIPR</code>, <code>OVRD</code>) or icons with subtext, switching to a <strong>0.2mm nozzle</strong> provides 400% higher detail resolution and perfect legibility. Alternatively, export <strong>Blank Caps + Stickers</strong> in Step 3 to use Cricut Print-Then-Cut or UV printing on smooth blank caps. On a 0.4mm nozzle, stick to <strong>1–3 characters</strong> (e.g. <code>TC</code>, <code>ABS</code>, <code>PIT</code>).
                       </p>
                     </div>
                   </div>

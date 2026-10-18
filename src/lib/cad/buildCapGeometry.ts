@@ -312,3 +312,99 @@ export async function buildCapGeometry(
   geometryCache.set(cacheKey, result);
   return result;
 }
+
+/**
+ * Builds a blank button cap geometry (smooth-bore hollow cup with a completely flat, uncut top face).
+ * Used when printing solid blank caps to apply printed vinyl stickers (Cricut) or UV printing.
+ */
+export function buildBlankCapGeometry(
+  config: ButtonCapConfig
+): CapGeometryResult {
+  const {
+    outerDiameter: OD,
+    baseInnerDiameter: baseID,
+    toleranceModifier,
+    capHeight: H,
+    topWallThickness: T,
+    inlayDepth,
+  } = config;
+
+  const effectiveID = +(baseID + toleranceModifier).toFixed(2);
+  const wallThickness = +((OD - effectiveID) / 2).toFixed(2);
+
+  const Ro = OD / 2;
+  const Ri = Math.min(Ro - 0.35, effectiveID / 2);
+  const C = 0.25; // 0.25mm top outer chamfer
+  const leadInChamfer = 0.15; // 0.15mm bottom inner lead-in chamfer
+
+  const points: THREE.Vector2[] = [
+    new THREE.Vector2(0.001, H),
+    new THREE.Vector2(Ro - C, H),
+    new THREE.Vector2(Ro, H - C),
+    new THREE.Vector2(Ro, 0),
+    new THREE.Vector2(Ri + leadInChamfer, 0),
+    new THREE.Vector2(Ri, leadInChamfer),
+    new THREE.Vector2(Ri, H - T),
+    new THREE.Vector2(0.001, H - T),
+  ];
+
+  const bodyCupGeo = new THREE.LatheGeometry(points, 64);
+  bodyCupGeo.computeVertexNormals();
+
+  return {
+    bodyGeometry: bodyCupGeo,
+    inlayGeometry: null,
+    effectiveInnerDiameter: effectiveID,
+    wallThickness,
+    outerDiameter: OD,
+    capHeight: H,
+    topWallThickness: T,
+    inlayDepth,
+  };
+}
+
+/**
+ * Evaluates whether a cap's inscription has fine details (such as symbol + subtext, symbols, or 4-char text)
+ * that are difficult to print cleanly with a standard 0.4mm multi-color FDM nozzle, recommending stickers or UV printing.
+ */
+export function getCapPrintabilityWarning(config: ButtonCapConfig): {
+  warn: boolean;
+  level: "high" | "medium" | "none";
+  reason: string;
+} {
+  const cleanSub = (config.subtext || "").trim();
+  const cleanText = (config.text || "").trim();
+
+  if (config.inscriptionMode === "symbol" && cleanSub.length > 0) {
+    return {
+      warn: true,
+      level: "high",
+      reason:
+        "Combining an icon and subtext on a small cap creates ultra-fine strokes (<0.38mm) that often blur on 0.4mm multi-color printers. Printing Blank Caps + Stickers (Cricut / UV) or using a 0.2mm nozzle is strongly recommended.",
+    };
+  }
+
+  if (config.inscriptionMode === "symbol") {
+    return {
+      warn: true,
+      level: "medium",
+      reason:
+        "Detailed motorsport icons can lose sharpness on standard 0.4mm nozzles. Consider exporting Blank Caps + Stickers (Cricut / UV) if your multi-color first layer blurs.",
+    };
+  }
+
+  if (
+    config.inscriptionMode === "text" &&
+    (cleanText.length >= 4 || (config.fontScale || 1.0) < 0.85)
+  ) {
+    return {
+      warn: true,
+      level: "medium",
+      reason:
+        "4-letter labels have tight letter spacing on ~11mm caps. If multi-color FDM printing blurs the letters, use Blank Caps + Stickers (Cricut / UV) or a 0.2mm nozzle.",
+    };
+  }
+
+  return { warn: false, level: "none", reason: "" };
+}
+

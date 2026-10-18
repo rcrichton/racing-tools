@@ -3,7 +3,18 @@
 import React, { useState } from "react";
 import { useCapStore } from "@/store/useCapStore";
 import { WHEEL_PRESETS } from "@/config/wheelPresets";
-import { exportAllInOne3MF, exportSingleCap3MF } from "@/lib/cad/export3MF";
+import {
+  exportAllInOne3MF,
+  exportSingleCap3MF,
+  exportBlankCaps3MF,
+} from "@/lib/cad/export3MF";
+import {
+  calculateStickerSheetMetrics,
+  exportStickerSheetSVG,
+  exportStickerSheetPNG,
+  exportBlankAndStickersBundleZip,
+} from "@/lib/cad/exportStickers";
+import { getCapPrintabilityWarning } from "@/lib/cad/buildCapGeometry";
 import { exportBatch12Zip } from "@/lib/cad/exportSTL";
 import { CapFaceBadge } from "@/components/wizard/CapFaceBadge";
 import { ShareSetButton } from "@/components/wizard/ShareSetButton";
@@ -17,6 +28,11 @@ import {
   Loader2,
   Sliders,
   Check,
+  AlertTriangle,
+  Sparkles,
+  Printer,
+  Image as ImageIcon,
+  Layers,
 } from "lucide-react";
 
 export const Step3ReviewExport: React.FC = () => {
@@ -42,12 +58,78 @@ export const Step3ReviewExport: React.FC = () => {
   const [isExporting3MFSet, setIsExporting3MFSet] = useState(false);
   const [isExporting3MFSingle, setIsExporting3MFSingle] = useState(false);
   const [isExportingSTLBatch, setIsExportingSTLBatch] = useState(false);
+  const [isExportingBundleZip, setIsExportingBundleZip] = useState(false);
+  const [isExportingBlank3MF, setIsExportingBlank3MF] = useState(false);
+  const [isExportingStickerPNG, setIsExportingStickerPNG] = useState(false);
+  const [isExportingStickerSVG, setIsExportingStickerSVG] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
   const [progressStatus, setProgressStatus] = useState<{
     pct: number;
     msg: string;
   } | null>(null);
+
+  const complexCaps = caps.filter((c) => getCapPrintabilityWarning(c).warn);
+  const highRiskCaps = caps.filter(
+    (c) => getCapPrintabilityWarning(c).level === "high"
+  );
+  const stickerMetrics = calculateStickerSheetMetrics(caps, "cricut");
+
+  const handleExportBundleZip = async () => {
+    try {
+      setIsExportingBundleZip(true);
+      setProgressStatus({ pct: 5, msg: "Building Blank Caps + Stickers ZIP..." });
+      await exportBlankAndStickersBundleZip(caps, printOrientation, (pct, msg) => {
+        setProgressStatus({ pct, msg });
+      });
+    } catch (err) {
+      console.error("Export bundle zip error:", err);
+    } finally {
+      setTimeout(() => {
+        setIsExportingBundleZip(false);
+        setProgressStatus(null);
+      }, 800);
+    }
+  };
+
+  const handleExportBlankCaps3MF = async () => {
+    try {
+      setIsExportingBlank3MF(true);
+      setProgressStatus({ pct: 10, msg: "Building Blank Caps .3MF..." });
+      await exportBlankCaps3MF(caps, printOrientation, (pct, msg) => {
+        setProgressStatus({ pct, msg });
+      });
+    } catch (err) {
+      console.error("Export blank caps 3MF error:", err);
+    } finally {
+      setTimeout(() => {
+        setIsExportingBlank3MF(false);
+        setProgressStatus(null);
+      }, 800);
+    }
+  };
+
+  const handleExportStickerPNG = async () => {
+    try {
+      setIsExportingStickerPNG(true);
+      await exportStickerSheetPNG(caps, "cricut", 600);
+    } catch (err) {
+      console.error("Export sticker sheet PNG error:", err);
+    } finally {
+      setIsExportingStickerPNG(false);
+    }
+  };
+
+  const handleExportStickerSVG = async () => {
+    try {
+      setIsExportingStickerSVG(true);
+      await exportStickerSheetSVG(caps, "cricut");
+    } catch (err) {
+      console.error("Export sticker sheet SVG error:", err);
+    } finally {
+      setIsExportingStickerSVG(false);
+    }
+  };
 
   const handleExportAll3MF = async () => {
     try {
@@ -118,6 +200,39 @@ export const Step3ReviewExport: React.FC = () => {
         </button>
       </div>
 
+      {/* Printability Warning & Recommendation Banner */}
+      {complexCaps.length > 0 && (
+        <div className="p-4 sm:p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3.5 shadow-lg shadow-amber-500/5">
+          <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0 mt-0.5">
+            <AlertTriangle className="w-5 h-5" />
+          </div>
+          <div className="flex flex-col gap-1 text-xs">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-bold text-amber-200 text-sm font-display tracking-wide">
+                FDM Printability Notice: Fine Details Detected
+              </span>
+              <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono text-[10px] font-semibold border border-amber-500/30">
+                {highRiskCaps.length > 0
+                  ? `${highRiskCaps.length} High-Detail Cap${highRiskCaps.length > 1 ? "s" : ""}`
+                  : `${complexCaps.length} Fine Cap${complexCaps.length > 1 ? "s" : ""}`}
+              </span>
+            </div>
+            <p className="text-slate-300 leading-relaxed text-xs">
+              <strong className="text-amber-200">
+                {highRiskCaps.length > 0
+                  ? `${highRiskCaps.length} cap(s) in your set combine icons & subtext`
+                  : `${complexCaps.length} cap(s) in your set contain fine icons or 4-letter text`}
+              </strong>{" "}
+              which can blur on standard 0.4mm multi-color FDM printers. We recommend using the{" "}
+              <strong className="text-white underline decoration-cyan-400 underline-offset-2">
+                Blank Caps + Stickers (Cricut Print &amp; Cut / UV Print)
+              </strong>{" "}
+              export option below (or a 0.2mm nozzle).
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Primary Export Card */}
       <div className="p-6 rounded-2xl bg-[#11141D] border border-white/10 shadow-xl flex flex-col gap-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.07]">
@@ -159,7 +274,7 @@ export const Step3ReviewExport: React.FC = () => {
         </div>
 
         {/* Progress Bar */}
-        {progressStatus && (
+        {progressStatus && (isExporting3MFSet || isExportingSTLBatch) && (
           <div className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/30 flex flex-col gap-1.5 text-xs">
             <div className="flex justify-between text-orange-300">
               <span>{progressStatus.msg}</span>
@@ -216,6 +331,124 @@ export const Step3ReviewExport: React.FC = () => {
               <FileArchive className="w-3.5 h-3.5" />
             )}
             <span>Export STL Archive (.ZIP)</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Secondary Export Card: Blank Button Caps + Sticker / UV Print Files */}
+      <div className="p-6 rounded-2xl bg-[#11141D] border border-cyan-500/30 shadow-xl shadow-cyan-950/20 flex flex-col gap-5 relative overflow-hidden">
+        {/* Subtle decorative glow */}
+        <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-cyan-500/10 via-emerald-500/5 to-transparent pointer-events-none rounded-tr-2xl" />
+
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.07] relative z-10">
+          <div>
+            <div className="flex flex-wrap items-center gap-2 mb-1">
+              <h3 className="text-base font-bold text-white font-display">
+                Blank Button Caps + Sticker / UV Print Files
+              </h3>
+              <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[11px] font-semibold flex items-center gap-1 font-mono">
+                <Sparkles className="w-3 h-3 text-cyan-400" />
+                {highRiskCaps.length > 0
+                  ? "Recommended for Icons & Small Text"
+                  : "Cricut & UV Ready"}
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 max-w-2xl leading-relaxed">
+              Print solid, flat-top blank caps in a single filament color and apply printed vinyl stickers (Cricut Print Then Cut) or UV print directly onto the caps for razor-sharp icons and micro-text.
+            </p>
+          </div>
+
+          {/* Compact Specification Pill / Bar */}
+          <div className="flex flex-wrap sm:flex-col gap-1.5 bg-[#090A0F] p-2.5 rounded-xl border border-white/[0.08] shrink-0 text-[11px] font-mono text-slate-300 self-start sm:self-auto">
+            <div className="flex items-center gap-1.5 text-cyan-300 font-semibold">
+              <Layers className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+              <span>Sticker Ø{stickerMetrics.stickerDiameterMm}mm (fits inside chamfer)</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-slate-400 text-[10px]">
+              <ImageIcon className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+              <span>
+                Sheet Size: {stickerMetrics.widthMm} × {stickerMetrics.heightMm} mm ({stickerMetrics.widthIn}&quot; × {stickerMetrics.heightIn}&quot;)
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        {progressStatus && (isExportingBundleZip || isExportingBlank3MF) && (
+          <div className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex flex-col gap-1.5 text-xs relative z-10">
+            <div className="flex justify-between text-cyan-300">
+              <span>{progressStatus.msg}</span>
+              <span className="font-mono font-bold">{progressStatus.pct}%</span>
+            </div>
+            <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-cyan-500 transition-all duration-200"
+                style={{ width: `${progressStatus.pct}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        <div className="flex flex-wrap items-center gap-3 relative z-10">
+          {/* 1. Download Blank Caps + Stickers Pack (.ZIP) */}
+          <button
+            onClick={handleExportBundleZip}
+            disabled={isExportingBundleZip || caps.length === 0}
+            className="flex items-center gap-2.5 px-5 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-slate-950 font-bold text-xs sm:text-sm shadow-lg shadow-cyan-500/20 transition disabled:opacity-50"
+            title="Download complete pack: Blank 3MF, STL, 600 DPI PNG, Cricut SVG, UV SVG, and Guide"
+          >
+            {isExportingBundleZip ? (
+              <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
+            ) : (
+              <Download className="w-4 h-4 text-slate-950" />
+            )}
+            <span>Download Blank Caps + Stickers Pack (.ZIP)</span>
+          </button>
+
+          {/* 2. Blank Caps Only (.3MF) */}
+          <button
+            onClick={handleExportBlankCaps3MF}
+            disabled={isExportingBlank3MF || caps.length === 0}
+            className="flex items-center gap-2 px-3.5 py-3 rounded-xl bg-[#090A0F] hover:bg-white/[0.06] border border-white/10 text-slate-300 hover:text-white text-xs font-medium transition disabled:opacity-50"
+            title="Solid flat-top caps ready for single-color 3D printing"
+          >
+            {isExportingBlank3MF ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Printer className="w-3.5 h-3.5 text-cyan-400" />
+            )}
+            <span>Blank Caps Only (.3MF)</span>
+          </button>
+
+          {/* 3. Cricut Print & Cut (.PNG 600 DPI) */}
+          <button
+            onClick={handleExportStickerPNG}
+            disabled={isExportingStickerPNG || caps.length === 0}
+            className="flex items-center gap-2 px-3.5 py-3 rounded-xl bg-[#090A0F] hover:bg-white/[0.06] border border-white/10 text-slate-300 hover:text-white text-xs font-medium transition disabled:opacity-50"
+            title="High-resolution transparent PNG with circular cut registration"
+          >
+            {isExportingStickerPNG ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <ImageIcon className="w-3.5 h-3.5 text-emerald-400" />
+            )}
+            <span>Cricut Print &amp; Cut (.PNG 600 DPI)</span>
+          </button>
+
+          {/* 4. Vector Stickers / UV (.SVG) */}
+          <button
+            onClick={handleExportStickerSVG}
+            disabled={isExportingStickerSVG || caps.length === 0}
+            className="flex items-center gap-2 px-3.5 py-3 rounded-xl bg-[#090A0F] hover:bg-white/[0.06] border border-white/10 text-slate-300 hover:text-white text-xs font-medium transition disabled:opacity-50"
+            title="Scalable vector graphic with separate print graphic and cut contour layers"
+          >
+            {isExportingStickerSVG ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Layers className="w-3.5 h-3.5 text-amber-400" />
+            )}
+            <span>Vector Stickers / UV (.SVG)</span>
           </button>
         </div>
       </div>
