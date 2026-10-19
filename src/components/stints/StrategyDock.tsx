@@ -194,24 +194,23 @@ export const StrategyDock: React.FC<StrategyDockProps> = ({
                 <div
                   key={driver.id}
                   onClick={() => setSelectedDriverId(isBrushActive ? null : driver.id)}
-                  className={`group relative flex items-center justify-between p-2.5 rounded-xl border transition-all cursor-pointer ${
+                  className={`group relative flex flex-col sm:flex-row sm:items-center justify-between p-2.5 rounded-xl border transition-all cursor-pointer gap-2 ${
                     isBrushActive
                       ? "bg-orange-500/10 border-orange-500/50 shadow-md shadow-orange-500/10"
                       : "bg-[#090A0F] hover:bg-white/[0.02] border-white/[0.06] hover:border-white/[0.12]"
                   }`}
                 >
-                  {/* Left: Drag Handle, Color Cycler, Name Input */}
-                  <div className="flex items-center gap-2.5 flex-1 min-w-0 mr-3">
-                    {/* Draggable Handle */}
+                  {/* Top / Left: Drag Handle, Color Cycler, Name Input, Active Pill, Mobile Delete */}
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    {/* Draggable Handle - tapping selects driver */}
                     <div
                       draggable={true}
                       onDragStart={(e) => {
                         e.dataTransfer.setData("application/x-lmu-driver", driver.id);
                         e.dataTransfer.effectAllowed = "copyMove";
                       }}
-                      onClick={(e) => e.stopPropagation()}
                       className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-white/[0.06] text-slate-500 hover:text-slate-300 transition shrink-0"
-                      title="Drag and drop onto any stint"
+                      title="Drag onto timeline or tap to select"
                     >
                       <GripVertical className="w-4 h-4" />
                     </div>
@@ -232,32 +231,26 @@ export const StrategyDock: React.FC<StrategyDockProps> = ({
                     <input
                       type="text"
                       value={driver.name}
-                      onClick={(e) => e.stopPropagation()}
+                      onClick={() => {
+                        if (!isBrushActive) {
+                          setSelectedDriverId(driver.id);
+                        }
+                      }}
                       onChange={(e) =>
                         store.updateDriver(driver.id, { name: e.target.value })
                       }
-                      className="bg-transparent font-semibold text-white focus:outline-none focus:border-b focus:border-orange-500 text-xs w-28 sm:w-36 truncate"
+                      className="bg-transparent font-semibold text-white focus:outline-none focus:border-b focus:border-orange-500 text-xs flex-1 min-w-0 sm:max-w-[140px] truncate"
                       placeholder="Driver Name"
                     />
 
                     {/* Brush Active Pill */}
                     {isBrushActive && (
-                      <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.5 rounded bg-orange-500 text-white font-bold">
-                        <Check className="w-3 h-3" /> Brush Active
+                      <span className="inline-flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.5 rounded bg-orange-500 text-white font-bold shrink-0">
+                        <Check className="w-3 h-3" /> <span className="hidden xs:inline">Active</span>
                       </span>
                     )}
-                  </div>
 
-                  {/* Right: Driver Stats & Delete Button */}
-                  <div className="flex items-center gap-3 shrink-0">
-                    <div className="flex items-center gap-2 font-mono text-[11px] text-slate-400">
-                      <span className="text-white font-semibold">{timeFormatted}</span>
-                      <span className="text-slate-600">·</span>
-                      <span>{stats.laps} Laps</span>
-                      <span className="text-slate-600">·</span>
-                      <span>{stats.stintCount} Stints</span>
-                    </div>
-
+                    {/* Mobile Delete Button */}
                     {drivers.length > 1 && (
                       <button
                         type="button"
@@ -266,7 +259,34 @@ export const StrategyDock: React.FC<StrategyDockProps> = ({
                           if (selectedDriverId === driver.id) setSelectedDriverId(null);
                           store.removeDriver(driver.id);
                         }}
-                        className="p-1 rounded text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition"
+                        className="sm:hidden ml-auto p-1 rounded text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition shrink-0"
+                        title="Remove driver"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Bottom / Right: Driver Stats & Desktop Delete Button */}
+                  <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pl-7 sm:pl-0">
+                    <div className="flex items-center gap-2 font-mono text-[11px] text-slate-400">
+                      <span className="text-white font-semibold">{timeFormatted}</span>
+                      <span className="text-slate-600">·</span>
+                      <span>{stats.laps} Laps</span>
+                      <span className="text-slate-600">·</span>
+                      <span>{stats.stintCount} Stints</span>
+                    </div>
+
+                    {/* Desktop Delete Button */}
+                    {drivers.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (selectedDriverId === driver.id) setSelectedDriverId(null);
+                          store.removeDriver(driver.id);
+                        }}
+                        className="hidden sm:block p-1 rounded text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition"
                         title="Remove driver"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
