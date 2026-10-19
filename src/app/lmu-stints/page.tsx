@@ -21,11 +21,24 @@ export default function LmuStintsPage() {
   const [loadedBanner, setLoadedBanner] = useState(false);
 
   // Brush states shared between StrategyDock and StintTimelineStrip
-  const [selectedDriverId, setSelectedDriverId] = useState<string | null>(null);
-  const [selectedTireBrush, setSelectedTireBrush] = useState<{
+  const [selectedDriverId, setSelectedDriverIdRaw] = useState<string | null>(null);
+  const [selectedTireBrush, setSelectedTireBrushRaw] = useState<{
     pattern: TireChangePattern;
     compound: TireCompound;
   } | null>(null);
+
+  const setSelectedDriverId = (id: string | null) => {
+    setSelectedDriverIdRaw(id);
+    if (id) setSelectedTireBrushRaw(null);
+  };
+  const setSelectedTireBrush = (
+    brush: { pattern: TireChangePattern; compound: TireCompound } | null
+  ) => {
+    setSelectedTireBrushRaw(brush);
+    if (brush) setSelectedDriverIdRaw(null);
+  };
+  const drivers = useStintStore((s) => s.drivers);
+  const activeBrushDriver = drivers.find((d) => d.id === selectedDriverId);
 
   const loadSnapshot = useStintStore((s) => s.loadSnapshot);
 
@@ -96,6 +109,46 @@ export default function LmuStintsPage() {
           selectedTireBrush={selectedTireBrush}
         />
       </main>
+
+      {/* Sticky Active Brush Bar (tap-to-assign for touch devices) */}
+      {(activeBrushDriver || selectedTireBrush) && (
+        <div className="fixed bottom-0 inset-x-0 z-40 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pointer-events-none">
+          <div className="pointer-events-auto max-w-xl mx-auto flex items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-[#12151E]/95 backdrop-blur-md border border-orange-500/40 shadow-2xl text-xs">
+            <div className="flex items-center gap-2 min-w-0">
+              {activeBrushDriver ? (
+                <>
+                  <span
+                    className="w-3 h-3 rounded-full shrink-0"
+                    style={{ backgroundColor: activeBrushDriver.color }}
+                  />
+                  <span className="text-slate-200 truncate">
+                    Tap a stint to put{" "}
+                    <strong className="text-white">{activeBrushDriver.name}</strong> in the car
+                  </span>
+                </>
+              ) : (
+                selectedTireBrush && (
+                  <span className="text-slate-200 truncate">
+                    Tap a pit marker to fit{" "}
+                    <strong className="text-white capitalize">
+                      {selectedTireBrush.compound} · {selectedTireBrush.pattern}
+                    </strong>
+                  </span>
+                )
+              )}
+            </div>
+            <button
+              onClick={() => {
+                setSelectedDriverIdRaw(null);
+                setSelectedTireBrushRaw(null);
+              }}
+              className="shrink-0 px-3 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-semibold"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Footer matching sim-caps/page.tsx */}
       <footer className="border-t border-white/[0.05] py-4 px-6 text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#090A0F]">

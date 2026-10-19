@@ -236,7 +236,11 @@ export const StintTimelineStrip: React.FC<StintTimelineStripProps> = ({
                       <div
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleCycleTirePattern(stintIdx);
+                          if (selectedTireBrush) {
+                            handleApplyTireChange(stintIdx, selectedTireBrush);
+                          } else {
+                            handleCycleTirePattern(stintIdx);
+                          }
                         }}
                         className={`flex items-center gap-2 p-1.5 px-2 rounded-xl border shadow-lg bg-[#0D1017] cursor-pointer hover:scale-105 transition-transform ${
                           COMPOUND_COLORS[stint.tireChange.compound]?.border ?? "border-white/20"

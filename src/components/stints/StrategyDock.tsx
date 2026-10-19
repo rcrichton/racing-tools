@@ -162,7 +162,7 @@ export const StrategyDock: React.FC<StrategyDockProps> = ({
                   Drivers Roster
                 </h3>
                 <p className="text-[11px] text-slate-400">
-                  Drag driver chip onto timeline, or click to activate assignment brush
+                  Drag onto the timeline, or tap a driver then tap a stint
                 </p>
               </div>
             </div>
