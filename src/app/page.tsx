@@ -11,6 +11,7 @@ import {
   Heart,
   ArrowRight,
   Activity,
+  Timer,
 } from "lucide-react";
 
 export default function LandingPage() {
@@ -75,6 +76,31 @@ export default function LandingPage() {
                   </h2>
                   <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-xl">
                     Parametric 3D-printable button caps for Fanatec, Moza, Simucube, and Logitech wheels. Custom text, motorsport symbols, and multi-color .3MF export.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-orange-500 group-hover:bg-orange-600 text-white font-semibold text-xs shrink-0 self-start sm:self-center transition">
+                <span>Open Tool</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+              </div>
+            </Link>
+
+            {/* LMU Stint Planner */}
+            <Link
+              href="/lmu-stints"
+              className="group relative p-6 sm:p-7 rounded-2xl bg-[#11141D] hover:bg-[#141824] border border-white/[0.08] hover:border-orange-500/50 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-6 shadow-lg"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center flex-shrink-0 shadow-md shadow-orange-500/20 group-hover:scale-105 transition-transform mt-0.5">
+                  <Timer className="w-5 h-5 text-white" />
+                </div>
+                <div className="space-y-1.5">
+                  <h2 className="text-lg font-bold text-white font-display tracking-tight group-hover:text-orange-400 transition">
+                    LMU Stint Planner
+                  </h2>
+                  <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-xl">
+                    Visual drag-and-drop endurance strategy planner for Le Mans Ultimate. Calculate Virtual Energy (VE) stints, plan partial or full tire changes, track tire allocation limits, and schedule driver swaps.
                   </p>
                 </div>
               </div>
